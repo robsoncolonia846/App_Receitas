@@ -1,0 +1,73 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0d9488" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="stylesheet" href="styles.css" />
+    <title>Historico de Receitas</title>
+  </head>
+  <body data-page="history">
+    <main class="app">
+      <header class="hero">
+        <h1>Historico de Receitas</h1>
+        <p>Veja as receitas preparadas recentemente e o que ainda falta testar.</p>
+        <nav class="top-nav">
+          <a class="nav-link" href="index.html">Inicio</a>
+          <a class="nav-link" href="products.html">Cadastrar</a>
+          <a class="nav-link is-active" href="history.html">Historico</a>
+          <button id="import-json-btn" type="button" class="sync-btn">Importar JSON</button>
+          <button id="export-json-btn" type="button" class="sync-btn">Exportar JSON</button>
+        </nav>
+      </header>
+
+      <section class="card sync-card">
+        <small id="sync-status"></small>
+      </section>
+
+      <section class="card">
+        <div class="section-row">
+          <h2>Acompanhamento</h2>
+          <small id="history-stats" class="small-muted"></small>
+        </div>
+
+        <form id="history-filter-form" class="grid-form compact-form filters-grid" novalidate>
+          <label>
+            Buscar
+            <input id="history-search" type="search" placeholder="Nome, categoria ou tag" autocomplete="off" />
+          </label>
+          <label>
+            Categoria
+            <select id="history-category-filter">
+              <option value="">Todas as categorias</option>
+            </select>
+          </label>
+          <label>
+            Periodo
+            <select id="history-period-filter">
+              <option value="all">Todo periodo</option>
+              <option value="7">Ultimos 7 dias</option>
+              <option value="30">Ultimos 30 dias</option>
+              <option value="90">Ultimos 90 dias</option>
+            </select>
+          </label>
+          <div class="form-actions">
+            <button id="history-clear-filters-btn" type="button" class="ghost-btn">Limpar filtros</button>
+          </div>
+        </form>
+
+        <h3 class="sub-title">Preparadas recentemente</h3>
+        <ul id="history-cooked-list" class="recipe-list"></ul>
+
+        <h3 class="sub-title">Ainda nao preparadas</h3>
+        <ul id="history-pending-list" class="recipe-list"></ul>
+      </section>
+    </main>
+
+    <input id="json-file-input" type="file" accept=".json,application/json,text/plain" hidden />
+
+    <script src="db.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
