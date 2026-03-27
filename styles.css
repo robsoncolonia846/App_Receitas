@@ -1,17 +1,19 @@
 ﻿:root {
-  --bg: #f2f7f6;
-  --card: #ffffff;
-  --text: #111827;
-  --muted: #4b5563;
-  --primary: #0d9488;
-  --primary-2: #0f766e;
-  --dark: #1f2937;
-  --danger: #dc2626;
-  --danger-2: #b91c1c;
-  --info: #2563eb;
-  --info-2: #1d4ed8;
-  --ok: #15803d;
-  --ok-2: #166534;
+  --bg: #f6f3ee;
+  --card: #fffdf8;
+  --text: #1f1f1f;
+  --muted: #616468;
+  --primary: #e66238;
+  --primary-2: #bb4f2f;
+  --dark: #2d3937;
+  --danger: #b94c36;
+  --danger-2: #9f3f2d;
+  --info: #3f6057;
+  --info-2: #2f4d46;
+  --ok: #4f7c70;
+  --ok-2: #3d6359;
+  --chip: #efe8dc;
+  --line: #d8cec0;
 }
 
 * {
@@ -20,8 +22,12 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", Tahoma, sans-serif;
-  background: linear-gradient(150deg, #dff6f2 0%, var(--bg) 60%, #f4f5ff 100%);
+  font-family: "Manrope", "Segoe UI", Tahoma, sans-serif;
+  background:
+    radial-gradient(circle at 18% 10%, rgba(230, 98, 56, 0.16), transparent 32%),
+    radial-gradient(circle at 82% 16%, rgba(63, 96, 87, 0.15), transparent 34%),
+    repeating-linear-gradient(130deg, rgba(255, 255, 255, 0.26) 0 3px, rgba(239, 232, 220, 0.3) 3px 14px),
+    var(--bg);
   color: var(--text);
 }
 
@@ -34,6 +40,7 @@ body {
 
 .hero h1 {
   margin: 4px 0;
+  font-family: "Fraunces", Georgia, serif;
   font-size: clamp(1.6rem, 5vw, 2.3rem);
 }
 
@@ -54,11 +61,11 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: none;
+  border: 1px solid #d7c8b7;
   border-radius: 10px;
   padding: 8px 11px;
-  background: #334155;
-  color: #ffffff;
+  background: var(--chip);
+  color: #2d3937;
   text-decoration: none;
   font-size: 0.84rem;
   cursor: pointer;
@@ -66,17 +73,20 @@ body {
 
 .nav-link:hover,
 .sync-btn:hover {
-  background: #0f172a;
+  background: #e3dbce;
 }
 
 .nav-link.is-active {
-  background: var(--primary-2);
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
 }
 
 .card {
   background: var(--card);
+  border: 1px solid var(--line);
   border-radius: 16px;
-  box-shadow: 0 8px 30px rgba(10, 30, 30, 0.08);
+  box-shadow: 0 14px 24px rgba(41, 33, 23, 0.08);
   padding: 14px;
   margin-bottom: 14px;
 }
@@ -87,7 +97,7 @@ body {
 }
 
 #sync-status {
-  color: #334155;
+  color: #374643;
   font-size: 0.82rem;
 }
 
@@ -138,7 +148,7 @@ input,
 select,
 textarea {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid #d0c4b5;
   border-radius: 10px;
   padding: 10px;
   background: #ffffff;
@@ -185,11 +195,13 @@ textarea {
 }
 
 .ghost-btn {
-  background: #475569;
+  border: 1px solid #d7c8b7;
+  background: var(--chip);
+  color: #2d3937;
 }
 
 .ghost-btn:hover {
-  background: #334155;
+  background: #e3dbce;
 }
 
 .filters-grid {
@@ -209,10 +221,10 @@ textarea {
 }
 
 .recipe-card {
-  border: 1px solid #dbe2e8;
+  border: 1px solid var(--line);
   border-radius: 12px;
   padding: 11px;
-  background: #fcfffe;
+  background: #fffdf8;
 }
 
 .recipe-head {
@@ -229,23 +241,24 @@ textarea {
 }
 
 .tag-btn {
-  border: none;
+  border: 1px solid #d1ba98;
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 0.74rem;
-  background: #e2e8f0;
-  color: #0f172a;
+  background: #f8ecd7;
+  color: #6e4d30;
   cursor: pointer;
   white-space: nowrap;
 }
 
 .tag-btn:hover {
-  background: #cbd5e1;
+  background: #f1dfc3;
 }
 
 .tag-btn.is-favorite {
-  background: #facc15;
-  color: #1f2937;
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #ffffff;
 }
 
 .meta-line,
@@ -257,15 +270,15 @@ textarea {
 }
 
 .tag-line {
-  color: #0f766e;
+  color: #4b6a62;
 }
 
 .details-block {
   margin-top: 9px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #dfd3c4;
   border-radius: 10px;
   padding: 8px;
-  background: #f8fbff;
+  background: #fff7eb;
 }
 
 .details-block summary {
@@ -298,7 +311,7 @@ textarea {
 .notes-box {
   margin: 10px 0 0;
   padding-top: 8px;
-  border-top: 1px dashed #cbd5e1;
+  border-top: 1px dashed #d5c8b8;
   font-size: 0.84rem;
   color: #334155;
 }
@@ -356,12 +369,12 @@ textarea {
 }
 
 .empty-state {
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed #cfbeab;
   border-radius: 12px;
   padding: 16px;
   text-align: center;
-  color: #64748b;
-  background: #f8fafc;
+  color: #6a6e72;
+  background: #fffaf1;
   font-size: 0.9rem;
 }
 

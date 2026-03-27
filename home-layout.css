@@ -60,7 +60,7 @@ body[data-page="home"] .topbar {
   background: rgba(255, 253, 248, 0.8);
   padding: 14px 18px;
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 14px;
 }
@@ -69,6 +69,10 @@ body[data-page="home"] .brand-block {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+body[data-page="home"] .brand-block > div {
+  position: relative;
 }
 
 body[data-page="home"] .brand-dot {
@@ -93,10 +97,119 @@ body[data-page="home"] .brand-title {
   font-size: clamp(1.2rem, 2vw, 1.55rem);
 }
 
+body[data-page="home"] .brand-signature {
+  margin: 2px 0 0;
+  display: block;
+  gap: 0;
+  font-family: "Caveat", "Segoe Script", "Brush Script MT", cursive;
+  font-size: 1.38rem;
+  font-weight: 700;
+  line-height: 0.95;
+  color: #3b4344;
+}
+
+body[data-page="home"] .brand-signature-btn {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+}
+
+body[data-page="home"] .brand-signature-btn:hover {
+  opacity: 0.86;
+}
+
+body[data-page="home"] .brand-signature-btn:focus-visible {
+  outline: 2px solid rgba(230, 98, 56, 0.48);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+body[data-page="home"] .brand-signature span {
+  display: block;
+}
+
+body[data-page="home"] .signature-editor {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 8;
+  width: min(340px, 85vw);
+  border: 1px solid #d7c8b7;
+  border-radius: 14px;
+  background: rgba(255, 253, 248, 0.97);
+  box-shadow: 0 16px 24px rgba(47, 38, 26, 0.12);
+  padding: 10px;
+  display: grid;
+  gap: 9px;
+}
+
+body[data-page="home"] .signature-editor[hidden] {
+  display: none !important;
+}
+
+body[data-page="home"] .signature-editor label {
+  display: grid;
+  gap: 5px;
+  font-size: 0.75rem;
+  color: #5c6464;
+}
+
+body[data-page="home"] .signature-editor-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+body[data-page="home"] .signature-editor input,
+body[data-page="home"] .signature-editor select {
+  width: 100%;
+  border: 1px solid #d0c4b5;
+  border-radius: 10px;
+  padding: 7px 8px;
+  background: #ffffff;
+  font: inherit;
+}
+
+body[data-page="home"] .signature-editor input[type="range"] {
+  padding: 0;
+  accent-color: #e66238;
+}
+
+body[data-page="home"] .signature-size-label {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #647071;
+  text-align: right;
+}
+
+body[data-page="home"] .signature-editor-actions {
+  display: flex;
+  gap: 7px;
+}
+
+body[data-page="home"] .signature-editor-actions .btn {
+  flex: 1 1 0;
+  padding: 7px 10px;
+  font-size: 0.72rem;
+}
+
 body[data-page="home"] .top-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  margin-top: 18px;
+  margin-left: auto;
   gap: 8px;
+}
+
+body[data-page="home"] .top-actions .btn {
+  white-space: nowrap;
 }
 
 body[data-page="home"] .btn {
@@ -137,6 +250,20 @@ body[data-page="home"] .btn-solid:hover {
   background: var(--home-accent-dark);
 }
 
+body[data-page="home"] .btn-quiet {
+  padding: 6px 10px;
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #5f6968;
+  background: rgba(239, 232, 220, 0.6);
+  border: 1px solid #d6ccbf;
+}
+
+body[data-page="home"] .btn-quiet:hover {
+  background: rgba(226, 216, 204, 0.9);
+  color: #495453;
+}
+
 body[data-page="home"] .hero-panel {
   display: grid;
   gap: 12px;
@@ -165,7 +292,7 @@ body[data-page="home"] .eyebrow {
 }
 
 body[data-page="home"] .hero-copy h2 {
-  margin: 10px 0;
+  margin: 0 0 10px;
   font-family: "Fraunces", Georgia, serif;
   font-size: clamp(1.65rem, 3vw, 2.2rem);
   line-height: 1.08;
@@ -174,35 +301,64 @@ body[data-page="home"] .hero-copy h2 {
 body[data-page="home"] .hero-copy > p {
   margin: 0;
   color: var(--home-muted);
+  max-width: 48ch;
 }
 
 body[data-page="home"] .hero-metrics {
   margin-top: 18px;
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(5, minmax(0, auto));
 }
 
-body[data-page="home"] .hero-metrics article {
+body[data-page="home"] .metric-filter-btn {
   border: 1px solid var(--home-line);
   border-radius: 16px;
-  padding: 12px;
+  padding: 10px;
   background: linear-gradient(160deg, #fffdf8, #f8efe4);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+body[data-page="home"] .metric-filter-btn:hover {
+  transform: translateY(-1px);
+  border-color: #d0bda4;
+}
+
+body[data-page="home"] .metric-filter-btn.is-active {
+  border-color: #d9a57c;
+  box-shadow: inset 0 0 0 1px rgba(230, 98, 56, 0.22);
+}
+
+body[data-page="home"] .metric-filter-doces {
+  grid-column: 2;
+  grid-row: 4;
+}
+
+body[data-page="home"] .metric-filter-jantar {
+  grid-column: 2;
+  grid-row: 5;
+}
+
+body[data-page="home"] .metric-filter-btn strong,
+body[data-page="home"] .metric-filter-btn span {
+  display: block;
 }
 
 body[data-page="home"] .hero-metrics strong {
-  display: block;
   font-family: "Fraunces", Georgia, serif;
-  font-size: 1.28rem;
+  font-size: 1.12rem;
+  border: none;
+  background: transparent;
+  padding: 0;
 }
 
 body[data-page="home"] .hero-metrics span {
   color: var(--home-muted);
-  font-size: 0.74rem;
-}
-
-body[data-page="home"] .hero-sync {
-  margin-top: 14px;
+  font-size: 0.7rem;
+  line-height: 1.2;
 }
 
 body[data-page="home"] #sync-status {
@@ -279,6 +435,23 @@ body[data-page="home"] .home-toolbar {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+}
+
+body[data-page="home"] .home-bottom-tools {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--home-line);
+  border-radius: 16px;
+  padding: 10px 12px;
+  background: rgba(255, 253, 248, 0.82);
+}
+
+body[data-page="home"] .home-bottom-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 body[data-page="home"] .chip-row {
@@ -503,27 +676,115 @@ body[data-page="home"] .reveal {
   }
 
   body[data-page="home"] .topbar {
-    padding: 12px;
+    padding: 10px;
+  }
+
+  body[data-page="home"] .brand-title {
+    font-size: 1.05rem;
+  }
+
+  body[data-page="home"] .brand-signature {
+    font-size: 1.2rem;
+  }
+
+  body[data-page="home"] .signature-editor {
+    position: static;
+    width: 100%;
+    margin-top: 8px;
+  }
+
+  body[data-page="home"] .signature-editor-grid {
+    grid-template-columns: 1fr;
   }
 
   body[data-page="home"] .top-actions {
-    width: 100%;
+    width: auto;
+    margin-top: 8px;
+    margin-left: 0;
+    align-self: flex-end;
   }
 
   body[data-page="home"] .top-actions .btn {
-    flex: 1 1 auto;
+    flex: 0 0 auto;
+    font-size: 0.76rem;
+    padding: 7px 10px;
   }
 
-  body[data-page="home"] .hero-metrics,
+  body[data-page="home"] .top-actions .btn-quiet {
+    font-size: 0.68rem;
+    padding: 6px 9px;
+  }
+
+  body[data-page="home"] .hero-copy {
+    padding: 18px;
+  }
+
+  body[data-page="home"] .eyebrow {
+    font-size: 0.66rem;
+  }
+
+  body[data-page="home"] .hero-copy h2 {
+    font-size: 1.46rem;
+    line-height: 1.14;
+  }
+
+  body[data-page="home"] .hero-copy > p {
+    font-size: 0.88rem;
+    line-height: 1.4;
+  }
+
+  body[data-page="home"] .metric-filter-btn {
+    padding: 10px;
+  }
+
+  body[data-page="home"] .hero-metrics strong {
+    font-size: 1.02rem;
+  }
+
+  body[data-page="home"] .hero-metrics span {
+    font-size: 0.72rem;
+  }
+
+  body[data-page="home"] .quick-panel {
+    padding: 14px;
+  }
+
+  body[data-page="home"] .quick-panel h3 {
+    font-size: 0.94rem;
+  }
+
+  body[data-page="home"] .quick-panel label {
+    font-size: 0.77rem;
+  }
+
   body[data-page="home"] .quick-row,
   body[data-page="home"] .details-grid,
   body[data-page="home"] .compact-form.filters-grid {
     grid-template-columns: 1fr;
   }
 
+  body[data-page="home"] .hero-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(5, minmax(0, auto));
+    gap: 7px;
+  }
+
   body[data-page="home"] .home-toolbar {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  body[data-page="home"] .home-bottom-tools {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  body[data-page="home"] .home-bottom-actions {
+    width: 100%;
+  }
+
+  body[data-page="home"] .home-bottom-actions .btn {
+    flex: 1 1 auto;
   }
 
   body[data-page="home"] .recipe-head {

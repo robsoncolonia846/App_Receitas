@@ -31,15 +31,226 @@
     clearFiltersBtn: document.getElementById("clear-filters-btn"),
     recipesList: document.getElementById("home-recipes-list"),
     quickFilters: document.getElementById("home-quick-filters"),
+    metricFilters: document.getElementById("home-metric-filters"),
     metricTotal: document.getElementById("metric-total"),
     metricFavorites: document.getElementById("metric-favorites"),
-    metricQuick: document.getElementById("metric-quick"),
+    metricCafes: document.getElementById("metric-cafes"),
+    metricLanches: document.getElementById("metric-lanches"),
+    metricTortas: document.getElementById("metric-tortas"),
+    metricJantares: document.getElementById("metric-jantares"),
+    metricDoces: document.getElementById("metric-doces"),
+    metricRecent: document.getElementById("metric-recent"),
+    ownerSignatureTrigger: document.getElementById("owner-signature-trigger"),
+    ownerSignatureName: document.getElementById("owner-signature-name"),
+    ownerSignatureEditor: document.getElementById("owner-signature-editor"),
+    ownerSignatureInput: document.getElementById("owner-signature-input"),
+    ownerSignatureSize: document.getElementById("owner-signature-size"),
+    ownerSignatureSizeLabel: document.getElementById("owner-signature-size-label"),
+    ownerSignatureFont: document.getElementById("owner-signature-font"),
+    ownerSignatureSaveBtn: document.getElementById("owner-signature-save-btn"),
+    ownerSignatureCancelBtn: document.getElementById("owner-signature-cancel-btn"),
   };
 
   const homeState = {
     quickFilter: "all",
   };
 
+  const OWNER_SIGNATURE_STORAGE_KEY = "app_receitas_owner_signature_v1";
+
+  const OWNER_SIGNATURE_FONT_MAP = {
+    caveat: "\"Caveat\", \"Segoe Script\", \"Brush Script MT\", cursive",
+    fraunces: "\"Fraunces\", Georgia, serif",
+    manrope: "\"Manrope\", \"Segoe UI\", sans-serif",
+    georgia: "Georgia, serif",
+    segoe: "\"Segoe UI\", Tahoma, Geneva, sans-serif",
+  };
+
+  const DEFAULT_OWNER_SIGNATURE = {
+    name: "Tamara Blatz",
+    size: 22,
+    font: "caveat",
+  };
+
+  const STARTER_RECIPES_SEED_KEY = "app_receitas_starter_seed_version";
+  const STARTER_RECIPES_SEED_VERSION = 1;
+
+  const STARTER_RECIPES = [
+    {
+      title: "Pao de queijo mineiro caseiro",
+      category: "Cafes",
+      prepMinutes: 40,
+      servings: 8,
+      difficulty: "Facil",
+      ingredients: [
+        "500 g de polvilho azedo",
+        "200 ml de leite",
+        "200 ml de agua",
+        "100 ml de oleo",
+        "4 ovos",
+        "250 g de queijo meia-cura ralado",
+      ],
+      steps: [
+        "Ferva leite, agua, oleo e sal.",
+        "Escalde o polvilho e deixe amornar.",
+        "Misture ovos e queijo ate dar ponto de enrolar.",
+        "Asse em forno preaquecido ate dourar.",
+      ],
+      tags: ["famosa", "mineiro", "forno"],
+      favorite: true,
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/2341-pao-de-queijo.html",
+    },
+    {
+      title: "Bolo de cenoura com calda de chocolate",
+      category: "Doces",
+      prepMinutes: 50,
+      servings: 12,
+      difficulty: "Facil",
+      ingredients: [
+        "3 cenouras medias",
+        "3 ovos",
+        "1/2 xicara de oleo",
+        "2 xicaras de farinha de trigo",
+        "1 e 1/2 xicara de acucar",
+        "Calda de chocolate a gosto",
+      ],
+      steps: [
+        "Bata cenoura, ovos e oleo no liquidificador.",
+        "Misture com farinha e acucar.",
+        "Asse e finalize com calda de chocolate.",
+      ],
+      tags: ["famosa", "bolo", "familia"],
+      favorite: true,
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/6389-bolo-de-cenoura.html",
+    },
+    {
+      title: "Brigadeiro tradicional",
+      category: "Doces",
+      prepMinutes: 20,
+      servings: 20,
+      difficulty: "Facil",
+      ingredients: [
+        "1 lata de leite condensado",
+        "1 colher (sopa) de manteiga",
+        "4 colheres (sopa) de chocolate em po",
+        "Chocolate granulado para enrolar",
+      ],
+      steps: [
+        "Misture leite condensado, manteiga e chocolate em po.",
+        "Cozinhe mexendo ate desgrudar do fundo da panela.",
+        "Espere esfriar, enrole e passe no granulado.",
+      ],
+      tags: ["famosa", "festa", "chocolate"],
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/9453-brigadeiro-tradicional.html",
+    },
+    {
+      title: "Mousse simples de maracuja",
+      category: "Doces",
+      prepMinutes: 15,
+      servings: 8,
+      difficulty: "Facil",
+      ingredients: [
+        "1 lata de leite condensado",
+        "1 lata de creme de leite",
+        "1 medida de suco concentrado de maracuja",
+      ],
+      steps: [
+        "Bata os ingredientes no liquidificador por 3 minutos.",
+        "Leve para gelar por no minimo 2 horas.",
+      ],
+      tags: ["famosa", "gelada", "rapida"],
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/10995-mousse-simples-de-maracuja.html",
+    },
+    {
+      title: "Estrogonofe de frango cremoso",
+      category: "Jantares",
+      prepMinutes: 35,
+      servings: 6,
+      difficulty: "Facil",
+      ingredients: [
+        "700 g de peito de frango em cubos",
+        "1 cebola picada",
+        "100 g de champignon",
+        "40 g de ketchup",
+        "15 g de mostarda",
+        "1 caixa de creme de leite",
+      ],
+      steps: [
+        "Doure o frango e reserve.",
+        "Refogue cebola e champignon.",
+        "Adicione ketchup, mostarda e frango.",
+        "Finalize com creme de leite.",
+      ],
+      tags: ["famosa", "frango", "classico"],
+      favorite: true,
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/317872-estrogonofe-de-frango.html",
+    },
+    {
+      title: "Lasanha de frango gratinada",
+      category: "Jantares",
+      prepMinutes: 65,
+      servings: 8,
+      difficulty: "Media",
+      ingredients: [
+        "500 g de frango desfiado",
+        "500 g de massa para lasanha",
+        "400 g de mussarela",
+        "Molho de tomate caseiro",
+        "Requeijao cremoso",
+        "Queijo ralado para gratinar",
+      ],
+      steps: [
+        "Monte camadas de molho, massa, frango, requeijao e queijo.",
+        "Repita ate finalizar os ingredientes.",
+        "Asse ate borbulhar e gratinar.",
+      ],
+      tags: ["famosa", "forno", "domingo"],
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/55380-lasanha-de-frango-gostosa.html",
+    },
+    {
+      title: "Torta de frango de forno",
+      category: "Tortas",
+      prepMinutes: 60,
+      servings: 8,
+      difficulty: "Media",
+      ingredients: [
+        "2 xicaras de farinha de trigo",
+        "3 ovos",
+        "2 xicaras de leite",
+        "1/2 xicara de oleo",
+        "1 peito de frango desfiado",
+        "1 colher (sopa) de fermento",
+      ],
+      steps: [
+        "Bata ovos, leite, oleo e farinha no liquidificador.",
+        "Despeje metade da massa, adicione recheio de frango e cubra.",
+        "Asse em forno medio ate dourar.",
+      ],
+      tags: ["famosa", "frango", "forno"],
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/177817-torta-de-frango.html",
+    },
+    {
+      title: "Sanduiche natural de frango",
+      category: "Lanches",
+      prepMinutes: 20,
+      servings: 4,
+      difficulty: "Facil",
+      ingredients: [
+        "2 xicaras de frango cozido e desfiado",
+        "4 colheres (sopa) de maionese",
+        "1 cenoura ralada",
+        "Suco de 1/2 limao",
+        "8 fatias de pao integral",
+        "Folhas de alface",
+      ],
+      steps: [
+        "Misture frango, maionese, cenoura e limao.",
+        "Acerte sal e pimenta.",
+        "Monte no pao integral com alface.",
+      ],
+      tags: ["famosa", "lanche", "pratico"],
+      notes: "Fonte TudoGostoso: https://www.tudogostoso.com.br/receita/135915-sanduiche-natural-de-frango.html",
+    },
+  ];
   const catalog = {
     formTitle: document.getElementById("catalog-form-title"),
     form: document.getElementById("recipe-form"),
@@ -73,6 +284,7 @@
   };
 
   bindCommonActions();
+  ensureStarterRecipesSeeded();
 
   if (page === "home") {
     initHomePage();
@@ -100,6 +312,51 @@
       return;
     }
     setSyncStatus(`${total} receitas salvas no navegador.`);
+  }
+
+  function ensureStarterRecipesSeeded() {
+    let appliedVersion = 0;
+
+    try {
+      const rawVersion = window.localStorage.getItem(STARTER_RECIPES_SEED_KEY);
+      const parsedVersion = Number.parseInt(String(rawVersion ?? ""), 10);
+      appliedVersion = Number.isFinite(parsedVersion) ? parsedVersion : 0;
+    } catch {
+      appliedVersion = 0;
+    }
+
+    if (appliedVersion >= STARTER_RECIPES_SEED_VERSION) {
+      return;
+    }
+
+    try {
+      const existingTitles = new Set(
+        dbApi.getRecipes().map((recipe) => dbApi.normalizeKey(recipe.title)),
+      );
+
+      const missingRecipes = STARTER_RECIPES.filter((recipe) => {
+        const titleKey = dbApi.normalizeKey(recipe.title);
+        return titleKey && !existingTitles.has(titleKey);
+      });
+
+      if (missingRecipes.length) {
+        dbApi.importDatabase(
+          {
+            app: "App Receitas",
+            version: STARTER_RECIPES_SEED_VERSION,
+            recipes: missingRecipes,
+          },
+          { mode: "merge" },
+        );
+      }
+
+      window.localStorage.setItem(
+        STARTER_RECIPES_SEED_KEY,
+        String(STARTER_RECIPES_SEED_VERSION),
+      );
+    } catch (error) {
+      console.warn("Falha ao aplicar receitas iniciais.", error);
+    }
   }
 
   function buildBackupFileName() {
@@ -530,17 +787,175 @@
     return "";
   }
 
+  function sanitizeOwnerSignatureConfig(config) {
+    const normalizedName = dbApi.normalizeText(config?.name);
+    const parsedSize = Number(config?.size);
+    const normalizedSize = Number.isFinite(parsedSize)
+      ? Math.min(46, Math.max(16, Math.round(parsedSize)))
+      : DEFAULT_OWNER_SIGNATURE.size;
+    const normalizedFont = OWNER_SIGNATURE_FONT_MAP[config?.font]
+      ? config.font
+      : DEFAULT_OWNER_SIGNATURE.font;
+
+    return {
+      name: normalizedName || DEFAULT_OWNER_SIGNATURE.name,
+      size: normalizedSize,
+      font: normalizedFont,
+    };
+  }
+
+  function loadOwnerSignatureConfig() {
+    try {
+      const raw = window.localStorage.getItem(OWNER_SIGNATURE_STORAGE_KEY);
+      if (!raw) return { ...DEFAULT_OWNER_SIGNATURE };
+
+      const parsed = JSON.parse(raw);
+      return sanitizeOwnerSignatureConfig(parsed);
+    } catch {
+      return { ...DEFAULT_OWNER_SIGNATURE };
+    }
+  }
+
+  function saveOwnerSignatureConfig(config) {
+    try {
+      window.localStorage.setItem(OWNER_SIGNATURE_STORAGE_KEY, JSON.stringify(config));
+    } catch {
+      // Ignora erro de armazenamento no navegador.
+    }
+  }
+
+  function applyOwnerSignatureConfig(config, syncInputs = true) {
+    if (!home.ownerSignatureName) return;
+
+    const safeConfig = sanitizeOwnerSignatureConfig(config);
+    const selectedFont = OWNER_SIGNATURE_FONT_MAP[safeConfig.font];
+
+    home.ownerSignatureName.textContent = safeConfig.name;
+    home.ownerSignatureName.style.fontFamily = selectedFont;
+    home.ownerSignatureName.style.fontSize = `${safeConfig.size}px`;
+
+    if (syncInputs) {
+      if (home.ownerSignatureInput) home.ownerSignatureInput.value = safeConfig.name;
+      if (home.ownerSignatureSize) home.ownerSignatureSize.value = String(safeConfig.size);
+      if (home.ownerSignatureFont) home.ownerSignatureFont.value = safeConfig.font;
+    }
+
+    if (home.ownerSignatureSizeLabel) home.ownerSignatureSizeLabel.textContent = `${safeConfig.size}px`;
+  }
+
+  function readOwnerSignatureInputs() {
+    return sanitizeOwnerSignatureConfig({
+      name: home.ownerSignatureInput?.value || "",
+      size: home.ownerSignatureSize?.value || DEFAULT_OWNER_SIGNATURE.size,
+      font: home.ownerSignatureFont?.value || DEFAULT_OWNER_SIGNATURE.font,
+    });
+  }
+
+  function setOwnerSignatureEditorOpen(isOpen) {
+    if (!home.ownerSignatureEditor || !home.ownerSignatureTrigger) return;
+
+    const shouldOpen = Boolean(isOpen);
+    home.ownerSignatureEditor.hidden = !shouldOpen;
+    home.ownerSignatureTrigger.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+
+    if (shouldOpen) {
+      home.ownerSignatureInput?.focus();
+      home.ownerSignatureInput?.select();
+    }
+  }
+
+  function initOwnerSignatureEditor() {
+    if (
+      !home.ownerSignatureTrigger ||
+      !home.ownerSignatureEditor ||
+      !home.ownerSignatureName ||
+      !home.ownerSignatureInput ||
+      !home.ownerSignatureSize ||
+      !home.ownerSignatureFont
+    ) {
+      return;
+    }
+
+    let savedConfig = loadOwnerSignatureConfig();
+    let draftConfig = { ...savedConfig };
+    applyOwnerSignatureConfig(savedConfig, true);
+
+    const openEditor = () => {
+      draftConfig = { ...savedConfig };
+      applyOwnerSignatureConfig(draftConfig, true);
+      setOwnerSignatureEditorOpen(true);
+    };
+
+    const closeEditor = (restoreSavedConfig = true) => {
+      if (restoreSavedConfig) {
+        applyOwnerSignatureConfig(savedConfig, true);
+      }
+      setOwnerSignatureEditorOpen(false);
+    };
+
+    const previewDraftFromInputs = () => {
+      draftConfig = readOwnerSignatureInputs();
+      applyOwnerSignatureConfig(draftConfig, false);
+    };
+
+    const saveDraftAndClose = () => {
+      draftConfig = readOwnerSignatureInputs();
+      savedConfig = { ...draftConfig };
+      applyOwnerSignatureConfig(savedConfig, true);
+      saveOwnerSignatureConfig(savedConfig);
+      setOwnerSignatureEditorOpen(false);
+    };
+
+    home.ownerSignatureTrigger.addEventListener("click", () => {
+      const isClosed = home.ownerSignatureEditor?.hidden !== false;
+      if (isClosed) {
+        openEditor();
+        return;
+      }
+      closeEditor(true);
+    });
+
+    home.ownerSignatureInput.addEventListener("input", previewDraftFromInputs);
+    home.ownerSignatureSize.addEventListener("input", previewDraftFromInputs);
+    home.ownerSignatureFont.addEventListener("change", previewDraftFromInputs);
+    home.ownerSignatureSaveBtn?.addEventListener("click", saveDraftAndClose);
+    home.ownerSignatureCancelBtn?.addEventListener("click", () => closeEditor(true));
+
+    document.addEventListener("click", (event) => {
+      if (home.ownerSignatureEditor?.hidden !== false) return;
+
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+
+      if (home.ownerSignatureEditor.contains(target)) return;
+      if (home.ownerSignatureTrigger?.contains(target)) return;
+
+      closeEditor(true);
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      if (home.ownerSignatureEditor?.hidden !== false) return;
+      closeEditor(true);
+    });
+  }
+
   function setActiveHomeQuickFilter(filterKey) {
-    const allowed = ["all", "favorites", "quick", "recent"];
+    const allowed = ["all", "favorites", "cafes", "lanches", "tortas", "jantares", "doces", "recent"];
     const nextFilter = allowed.includes(filterKey) ? filterKey : "all";
     homeState.quickFilter = nextFilter;
 
-    const chips = home.quickFilters
-      ? Array.from(home.quickFilters.querySelectorAll("[data-home-filter]"))
-      : [];
-
-    for (const chip of chips) {
-      chip.classList.toggle("is-active", chip.dataset.homeFilter === nextFilter);
+    const containers = [home.quickFilters, home.metricFilters];
+    for (const container of containers) {
+      if (!container) continue;
+      const controls = Array.from(container.querySelectorAll("[data-home-filter]"));
+      for (const control of controls) {
+        const isActive = control.dataset.homeFilter === nextFilter;
+        control.classList.toggle("is-active", isActive);
+        if (control.tagName === "BUTTON") {
+          control.setAttribute("aria-pressed", isActive ? "true" : "false");
+        }
+      }
     }
   }
 
@@ -549,11 +964,35 @@
       return recipes.filter((recipe) => recipe.favorite);
     }
 
-    if (homeState.quickFilter === "quick") {
-      return recipes.filter((recipe) => (
-        Number.isFinite(Number(recipe.prepMinutes))
-        && Number(recipe.prepMinutes) <= 30
-      ));
+    function normalizeCategory(value) {
+      return dbApi.normalizeText(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLocaleLowerCase("pt-BR");
+    }
+
+    function matchesCategory(recipe, expectedCategory) {
+      return normalizeCategory(recipe.category) === normalizeCategory(expectedCategory);
+    }
+
+    if (homeState.quickFilter === "cafes") {
+      return recipes.filter((recipe) => matchesCategory(recipe, "cafes"));
+    }
+
+    if (homeState.quickFilter === "lanches") {
+      return recipes.filter((recipe) => matchesCategory(recipe, "lanches"));
+    }
+
+    if (homeState.quickFilter === "tortas") {
+      return recipes.filter((recipe) => matchesCategory(recipe, "tortas"));
+    }
+
+    if (homeState.quickFilter === "jantares") {
+      return recipes.filter((recipe) => matchesCategory(recipe, "jantares"));
+    }
+
+    if (homeState.quickFilter === "doces") {
+      return recipes.filter((recipe) => matchesCategory(recipe, "doces"));
     }
 
     if (homeState.quickFilter === "recent") {
@@ -565,6 +1004,8 @@
 
   function initHomePage() {
     if (!home.recipesList) return;
+
+    initOwnerSignatureEditor();
 
     home.quickForm?.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -593,6 +1034,14 @@
     home.quickFilters?.addEventListener("click", (event) => {
       const filterButton = event.target.closest("[data-home-filter]");
       if (!filterButton || !home.quickFilters.contains(filterButton)) return;
+
+      setActiveHomeQuickFilter(filterButton.dataset.homeFilter || "all");
+      renderHomePage();
+    });
+
+    home.metricFilters?.addEventListener("click", (event) => {
+      const filterButton = event.target.closest("[data-home-filter]");
+      if (!filterButton || !home.metricFilters.contains(filterButton)) return;
 
       setActiveHomeQuickFilter(filterButton.dataset.homeFilter || "all");
       renderHomePage();
@@ -661,19 +1110,42 @@
     if (home.stats) {
       const total = allRecipes.length;
       const favorites = allRecipes.filter((recipe) => recipe.favorite).length;
-      const quickCount = allRecipes.filter((recipe) => (
-        Number.isFinite(Number(recipe.prepMinutes))
-        && Number(recipe.prepMinutes) <= 30
-      )).length;
+
+      function normalizeCategory(value) {
+        return dbApi.normalizeText(value)
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .toLocaleLowerCase("pt-BR");
+      }
+
+      function countByCategory(categoryName) {
+        return allRecipes.filter((recipe) => normalizeCategory(recipe.category) === normalizeCategory(categoryName)).length;
+      }
+
+      const cafesCount = countByCategory("cafes");
+      const lanchesCount = countByCategory("lanches");
+      const tortasCount = countByCategory("tortas");
+      const jantaresCount = countByCategory("jantares");
+      const docesCount = countByCategory("doces");
+      const recentCount = allRecipes.filter((recipe) => isWithinLastDays(recipe.updatedAt, 14)).length;
 
       if (home.metricTotal) home.metricTotal.textContent = String(total);
       if (home.metricFavorites) home.metricFavorites.textContent = String(favorites);
-      if (home.metricQuick) home.metricQuick.textContent = String(quickCount);
+      if (home.metricCafes) home.metricCafes.textContent = String(cafesCount);
+      if (home.metricLanches) home.metricLanches.textContent = String(lanchesCount);
+      if (home.metricTortas) home.metricTortas.textContent = String(tortasCount);
+      if (home.metricJantares) home.metricJantares.textContent = String(jantaresCount);
+      if (home.metricDoces) home.metricDoces.textContent = String(docesCount);
+      if (home.metricRecent) home.metricRecent.textContent = String(recentCount);
 
       let filterLabel = "Todas";
       if (homeState.quickFilter === "favorites") filterLabel = "Favoritas";
-      if (homeState.quickFilter === "quick") filterLabel = "Ate 30 min";
-      if (homeState.quickFilter === "recent") filterLabel = "Atualizadas";
+      if (homeState.quickFilter === "cafes") filterLabel = "Cafés";
+      if (homeState.quickFilter === "lanches") filterLabel = "Lanches";
+      if (homeState.quickFilter === "tortas") filterLabel = "Tortas";
+      if (homeState.quickFilter === "jantares") filterLabel = "Jantares";
+      if (homeState.quickFilter === "doces") filterLabel = "Doces";
+      if (homeState.quickFilter === "recent") filterLabel = "Últimas atualizações";
 
       home.stats.textContent = `${sorted.length} visiveis | Filtro rapido: ${filterLabel}`;
     }
@@ -955,3 +1427,4 @@
     }
   }
 })();
+

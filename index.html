@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Caveat:wght@700&family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
@@ -26,43 +26,91 @@
           <div>
             <p class="brand-kicker">Caderno Digital</p>
             <h1 class="brand-title">Receitas da Casa</h1>
+            <p class="brand-signature">
+              <button
+                id="owner-signature-trigger"
+                type="button"
+                class="brand-signature-btn"
+                aria-controls="owner-signature-editor"
+                aria-expanded="false"
+                title="Clique para editar nome, tamanho e fonte"
+              >
+                <span id="owner-signature-name">Tamara Blatz</span>
+              </button>
+            </p>
+            <div id="owner-signature-editor" class="signature-editor" hidden>
+              <label>
+                Nome
+                <input id="owner-signature-input" type="text" maxlength="48" placeholder="Nome do dono da receita" />
+              </label>
+              <div class="signature-editor-grid">
+                <label>
+                  Tamanho
+                  <input id="owner-signature-size" type="range" min="16" max="46" step="1" />
+                </label>
+                <label>
+                  Fonte
+                  <select id="owner-signature-font">
+                    <option value="caveat">Caveat (assinatura)</option>
+                    <option value="fraunces">Fraunces (serifada)</option>
+                    <option value="manrope">Manrope (limpa)</option>
+                    <option value="georgia">Georgia (classica)</option>
+                    <option value="segoe">Segoe UI (moderna)</option>
+                  </select>
+                </label>
+              </div>
+              <p id="owner-signature-size-label" class="signature-size-label">22px</p>
+              <div class="signature-editor-actions">
+                <button id="owner-signature-save-btn" type="button" class="btn btn-solid">Salvar alteracoes</button>
+                <button id="owner-signature-cancel-btn" type="button" class="btn btn-soft">Fechar</button>
+              </div>
+            </div>
           </div>
         </div>
 
         <nav class="top-actions">
-          <a class="btn btn-soft" href="index.html">Inicio</a>
-          <a class="btn btn-soft" href="products.html">Cadastrar</a>
-          <a class="btn btn-soft" href="history.html">Historico</a>
-          <button id="import-json-btn" type="button" class="btn btn-soft">Importar JSON</button>
-          <button id="export-json-btn" type="button" class="btn btn-solid">Exportar JSON</button>
+          <a class="btn btn-quiet" href="products.html">Cadastrar receitas</a>
         </nav>
       </header>
 
       <section class="hero-panel reveal" style="--d: 0.11s">
         <article class="hero-copy">
-          <p class="eyebrow">Nova home</p>
-          <h2>Visual novo para cadastro rapido e acesso facil as receitas</h2>
-          <p>
-            A ideia aqui e ter uma pagina principal mais bonita e mais pratica,
-            para abrir e usar no dia a dia sem friccao.
-          </p>
+          <h2>Seu caderno de receitas</h2>
 
-          <div class="hero-metrics">
-            <article>
+          <div id="home-metric-filters" class="hero-metrics">
+            <button class="metric-filter-btn is-active" type="button" data-home-filter="all" aria-pressed="true">
               <strong id="metric-total">0</strong>
-              <span>Receitas no caderno</span>
-            </article>
-            <article>
+              <span>Todas Receitas</span>
+            </button>
+            <button class="metric-filter-btn" type="button" data-home-filter="cafes" aria-pressed="false">
+              <strong id="metric-cafes">0</strong>
+              <span>Cafés</span>
+            </button>
+            <button class="metric-filter-btn" type="button" data-home-filter="favorites" aria-pressed="false">
               <strong id="metric-favorites">0</strong>
-              <span>Favoritas da familia</span>
-            </article>
-            <article>
-              <strong id="metric-quick">0</strong>
-              <span>Prontas em ate 30 min</span>
-            </article>
+              <span>Favoritas</span>
+            </button>
+            <button class="metric-filter-btn" type="button" data-home-filter="lanches" aria-pressed="false">
+              <strong id="metric-lanches">0</strong>
+              <span>Lanches</span>
+            </button>
+            <button class="metric-filter-btn" type="button" data-home-filter="recent" aria-pressed="false">
+              <strong id="metric-recent">0</strong>
+              <span>Últimas atualizações</span>
+            </button>
+            <button class="metric-filter-btn" type="button" data-home-filter="tortas" aria-pressed="false">
+              <strong id="metric-tortas">0</strong>
+              <span>Tortas</span>
+            </button>
+            <button class="metric-filter-btn metric-filter-jantar" type="button" data-home-filter="jantares" aria-pressed="false">
+              <strong id="metric-jantares">0</strong>
+              <span>Jantar</span>
+            </button>
+            <button class="metric-filter-btn metric-filter-doces" type="button" data-home-filter="doces" aria-pressed="false">
+              <strong id="metric-doces">0</strong>
+              <span>Doces</span>
+            </button>
           </div>
-
-          <p class="hero-sync"><small id="sync-status"></small></p>
         </article>
 
         <section class="quick-panel-wrap">
@@ -119,9 +167,13 @@
       <section class="home-toolbar reveal" style="--d: 0.16s">
         <div id="home-quick-filters" class="chip-row">
           <button class="chip is-active" type="button" data-home-filter="all">Todas</button>
+          <button class="chip" type="button" data-home-filter="cafes">Cafés</button>
           <button class="chip" type="button" data-home-filter="favorites">Favoritas</button>
-          <button class="chip" type="button" data-home-filter="quick">Ate 30 min</button>
-          <button class="chip" type="button" data-home-filter="recent">Atualizadas</button>
+          <button class="chip" type="button" data-home-filter="lanches">Lanches</button>
+          <button class="chip" type="button" data-home-filter="recent">Últimas atualizações</button>
+          <button class="chip" type="button" data-home-filter="tortas">Tortas</button>
+          <button class="chip" type="button" data-home-filter="jantares">Jantares</button>
+          <button class="chip" type="button" data-home-filter="doces">Doces</button>
         </div>
         <small id="home-stats" class="small-muted"></small>
       </section>
@@ -158,6 +210,14 @@
         </form>
 
         <ul id="home-recipes-list" class="recipe-list home-recipe-list"></ul>
+      </section>
+
+      <section class="home-bottom-tools reveal" style="--d: 0.27s">
+        <small id="sync-status" class="small-muted">Backup e restauracao da base de receitas</small>
+        <div class="home-bottom-actions">
+          <button id="import-json-btn" type="button" class="btn btn-quiet">Importar JSON</button>
+          <button id="export-json-btn" type="button" class="btn btn-quiet">Exportar JSON</button>
+        </div>
       </section>
     </main>
 
