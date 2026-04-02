@@ -1,0 +1,25 @@
+{
+  "app": "Receitas da Casa",
+  "version": 1,
+  "exportedAt": "2026-04-02T23:01:40.273Z",
+  "recipes": [
+    {
+      "id": "8aac0085-efae-42cf-9123-0cd952479e4d",
+      "name": "Pizza Salgada",
+      "category": "Lanches",
+      "time": 30,
+      "servings": 1,
+      "ingredients": [
+        "05 Chicaras de Farinha",
+        "01 Chicara de Oleo",
+        "02 Ovos",
+        "01 Xicara de Leite",
+        "1/2 lata pequena de Fermento Royal"
+      ],
+      "steps": "lwnfjefqbew",
+      "favorite": true,
+      "createdAt": "2026-04-02T22:52:19.641Z",
+      "updatedAt": "2026-04-02T23:01:36.369Z"
+    }
+  ]
+}

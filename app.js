@@ -37,7 +37,7 @@ function setup() {
   elements.form.addEventListener("submit", onCreateRecipe);
   elements.cancelEditBtn.addEventListener("click", cancelEditing);
   elements.exportJsonBtn.addEventListener("click", exportRecipesAsJson);
-  elements.importJsonBtn.addEventListener("click", () => elements.importJsonInput.click());
+  elements.importJsonBtn.addEventListener("click", handleImportJsonClick);
   elements.importJsonInput.addEventListener("change", importRecipesFromJson);
   elements.searchInput.addEventListener("input", render);
   elements.categoryFilter.addEventListener("change", render);
@@ -205,7 +205,7 @@ function cancelEditing(options = {}) {
   }
 }
 
-function exportRecipesAsJson() {
+async function exportRecipesAsJson() {
   const payload = {
     app: "Receitas da Casa",
     version: 1,
@@ -214,19 +214,76 @@ function exportRecipesAsJson() {
   };
 
   const jsonContent = JSON.stringify(payload, null, 2);
-  const blob = new Blob([jsonContent], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
   const dateLabel = new Date().toISOString().slice(0, 10);
+  const fileName = `receitas-da-casa-${dateLabel}.json`;
 
-  const anchor = document.createElement("a");
-  anchor.href = url;
-  anchor.download = `receitas-da-casa-${dateLabel}.json`;
-  document.body.append(anchor);
-  anchor.click();
-  anchor.remove();
-  URL.revokeObjectURL(url);
+  if (supportsSavePicker()) {
+    try {
+      const fileHandle = await window.showSaveFilePicker({
+        suggestedName: fileName,
+        types: [
+          {
+            description: "Arquivo JSON",
+            accept: { "application/json": [".json"] }
+          }
+        ]
+      });
 
-  setShareStatus(`JSON exportado com ${recipes.length} ${recipes.length === 1 ? "receita" : "receitas"}.`);
+      const writable = await fileHandle.createWritable();
+      await writable.write(jsonContent);
+      await writable.close();
+
+      setShareStatus(`JSON exportado com ${recipes.length} ${recipes.length === 1 ? "receita" : "receitas"}.`);
+      return;
+    } catch (error) {
+      if (isUserCancelError(error)) {
+        return;
+      }
+
+      console.error("Falha ao exportar pelo seletor nativo:", error);
+      setShareStatus("Seu navegador não abriu o seletor de pasta. Será feito download padrão.", true);
+    }
+  }
+
+  downloadJsonFallback(jsonContent, fileName);
+  if (supportsSavePicker()) {
+    setShareStatus(`JSON exportado com ${recipes.length} ${recipes.length === 1 ? "receita" : "receitas"}.`);
+  } else {
+    setShareStatus("Seu navegador não permite escolher pasta aqui. O arquivo foi baixado no padrão do navegador.");
+  }
+}
+
+async function handleImportJsonClick() {
+  if (supportsOpenPicker()) {
+    try {
+      const [fileHandle] = await window.showOpenFilePicker({
+        multiple: false,
+        types: [
+          {
+            description: "Arquivo JSON",
+            accept: { "application/json": [".json"], "text/json": [".json"] }
+          }
+        ]
+      });
+
+      if (!fileHandle) {
+        return;
+      }
+
+      const file = await fileHandle.getFile();
+      await processImportedRecipesFile(file);
+      return;
+    } catch (error) {
+      if (isUserCancelError(error)) {
+        return;
+      }
+
+      console.error("Falha ao importar pelo seletor nativo:", error);
+      setShareStatus("Não foi possível abrir o seletor nativo. Usando seletor padrão.", true);
+    }
+  }
+
+  elements.importJsonInput.click();
 }
 
 async function importRecipesFromJson(event) {
@@ -235,6 +292,11 @@ async function importRecipesFromJson(event) {
     return;
   }
 
+  await processImportedRecipesFile(file);
+  event.target.value = "";
+}
+
+async function processImportedRecipesFile(file) {
   try {
     const fileContent = await file.text();
     const parsed = JSON.parse(fileContent);
@@ -265,9 +327,32 @@ async function importRecipesFromJson(event) {
   } catch (error) {
     console.error("Falha ao importar JSON:", error);
     setShareStatus("Não foi possível importar esse arquivo JSON.", true);
-  } finally {
-    event.target.value = "";
   }
+}
+
+function supportsSavePicker() {
+  return typeof window.showSaveFilePicker === "function";
+}
+
+function supportsOpenPicker() {
+  return typeof window.showOpenFilePicker === "function";
+}
+
+function isUserCancelError(error) {
+  return Boolean(error && typeof error === "object" && error.name === "AbortError");
+}
+
+function downloadJsonFallback(jsonContent, fileName) {
+  const blob = new Blob([jsonContent], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = fileName;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
 }
 
 function render() {
