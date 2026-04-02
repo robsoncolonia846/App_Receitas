@@ -3,7 +3,8 @@ const RECENT_WINDOW_DAYS = 7;
 
 const elements = {
   form: document.querySelector("#recipeForm"),
-  jumpToForm: document.querySelector("#jumpToForm"),
+  statsGrid: document.querySelector(".stats-grid"),
+  statCards: Array.from(document.querySelectorAll(".stat-card[data-stat-filter]")),
   submitRecipeBtn: document.querySelector("#submitRecipeBtn"),
   cancelEditBtn: document.querySelector("#cancelEditBtn"),
   exportJsonBtn: document.querySelector("#exportJsonBtn"),
@@ -29,6 +30,7 @@ const elements = {
 
 let recipes = loadRecipes();
 let editingRecipeId = null;
+let activeStatFilter = "all";
 
 setup();
 render();
@@ -36,13 +38,14 @@ render();
 function setup() {
   elements.form.addEventListener("submit", onCreateRecipe);
   elements.cancelEditBtn.addEventListener("click", cancelEditing);
+  elements.statsGrid.addEventListener("click", onStatFilterClick);
   elements.exportJsonBtn.addEventListener("click", exportRecipesAsJson);
   elements.importJsonBtn.addEventListener("click", handleImportJsonClick);
   elements.importJsonInput.addEventListener("change", importRecipesFromJson);
   elements.searchInput.addEventListener("input", render);
-  elements.categoryFilter.addEventListener("change", render);
-  elements.jumpToForm.addEventListener("click", () => {
-    document.querySelector("#cadastro").scrollIntoView({ behavior: "smooth", block: "start" });
+  elements.categoryFilter.addEventListener("change", () => {
+    activeStatFilter = "all";
+    render();
   });
 
   elements.recipeList.addEventListener("click", (event) => {
@@ -72,6 +75,19 @@ function setup() {
   });
 }
 
+function onStatFilterClick(event) {
+  const button = event.target.closest(".stat-card[data-stat-filter]");
+  if (!button) {
+    return;
+  }
+
+  activeStatFilter = button.dataset.statFilter || "all";
+  elements.categoryFilter.value = "";
+  render();
+
+  document.querySelector("#list-title").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function onCreateRecipe(event) {
   event.preventDefault();
   const formData = new FormData(elements.form);
@@ -81,7 +97,6 @@ function onCreateRecipe(event) {
     name: cleanText(formData.get("name")),
     category: normalizeCategory(cleanText(formData.get("category"))),
     time: Number(formData.get("time")),
-    servings: Number(formData.get("servings")),
     ingredients: splitLines(formData.get("ingredients")),
     steps: cleanText(formData.get("steps"))
   };
@@ -180,7 +195,6 @@ function startEditing(recipeId) {
   elements.form.elements.name.value = recipe.name;
   elements.form.elements.category.value = recipe.category;
   elements.form.elements.time.value = recipe.time;
-  elements.form.elements.servings.value = recipe.servings;
   elements.form.elements.ingredients.value = recipe.ingredients.join("\n");
   elements.form.elements.steps.value = recipe.steps;
 
@@ -358,12 +372,78 @@ function downloadJsonFallback(jsonContent, fileName) {
 function render() {
   renderCategoryFilter();
   renderStats();
+  renderActiveStatFilter();
+
+  if (activeStatFilter === "lanches") {
+    renderLanchesGroupedView();
+    return;
+  }
 
   const filteredRecipes = getFilteredRecipes();
   elements.listCount.textContent = `${filteredRecipes.length} ${filteredRecipes.length === 1 ? "item" : "itens"}`;
 
+  if (activeStatFilter === "all") {
+    renderSingleGroupView("Todas receitas", filteredRecipes, "Nenhuma receita encontrada.");
+    return;
+  }
+
   elements.recipeList.innerHTML = filteredRecipes.map(renderRecipeCard).join("");
   elements.emptyState.style.display = filteredRecipes.length ? "none" : "block";
+}
+
+function renderLanchesGroupedView() {
+  const grouped = getLanchesGroupedRecipes();
+  elements.listCount.textContent = `${grouped.all.length} ${grouped.all.length === 1 ? "item" : "itens"}`;
+
+  elements.recipeList.innerHTML = `
+    <section class="recipe-group">
+      <div class="recipe-group-header">
+        <h4>Lanches</h4>
+        <p>${grouped.lanches.length} ${grouped.lanches.length === 1 ? "receita" : "receitas"}</p>
+      </div>
+      <div class="recipe-group-list">
+        ${grouped.lanches.length ? grouped.lanches.map(renderRecipeCard).join("") : '<p class="recipe-group-empty">Nenhuma receita de lanches encontrada.</p>'}
+      </div>
+    </section>
+    <section class="recipe-group">
+      <div class="recipe-group-header">
+        <h4>Todas receitas</h4>
+        <p>${grouped.all.length} ${grouped.all.length === 1 ? "receita" : "receitas"}</p>
+      </div>
+      <div class="recipe-group-list">
+        ${grouped.all.length ? grouped.all.map(renderRecipeCard).join("") : '<p class="recipe-group-empty">Nenhuma receita encontrada.</p>'}
+      </div>
+    </section>
+  `;
+
+  elements.emptyState.style.display = "none";
+}
+
+function renderSingleGroupView(title, recipeList, emptyMessage) {
+  elements.recipeList.innerHTML = `
+    <section class="recipe-group">
+      <div class="recipe-group-header">
+        <h4>${escapeHtml(title)}</h4>
+        <p>${recipeList.length} ${recipeList.length === 1 ? "receita" : "receitas"}</p>
+      </div>
+      <div class="recipe-group-list">
+        ${recipeList.length ? recipeList.map(renderRecipeCard).join("") : `<p class="recipe-group-empty">${escapeHtml(emptyMessage)}</p>`}
+      </div>
+    </section>
+  `;
+
+  elements.emptyState.style.display = "none";
+}
+
+function getLanchesGroupedRecipes() {
+  const searchTerm = simplifyText(elements.searchInput.value);
+  const allRecipes = sortRecipesAlphabetically(recipes.filter((recipe) => recipeMatchesSearchTerm(recipe, searchTerm)));
+  const lanchesRecipes = sortRecipesAlphabetically(allRecipes.filter((recipe) => mapCategory(recipe.category) === "lanches"));
+
+  return {
+    lanches: lanchesRecipes,
+    all: allRecipes
+  };
 }
 
 function renderStats() {
@@ -417,12 +497,47 @@ function getFilteredRecipes() {
   const selectedCategory = elements.categoryFilter.value;
 
   return recipes.filter((recipe) => {
+    const matchesStatFilter = recipeMatchesStatFilter(recipe);
     const matchesCategory = !selectedCategory || recipe.category === selectedCategory;
-    const compositeText = simplifyText(`${recipe.name} ${recipe.category} ${recipe.ingredients.join(" ")}`);
-    const matchesSearch = !searchTerm || compositeText.includes(searchTerm);
+    const matchesSearch = recipeMatchesSearchTerm(recipe, searchTerm);
 
-    return matchesCategory && matchesSearch;
+    return matchesStatFilter && matchesCategory && matchesSearch;
   });
+}
+
+function recipeMatchesSearchTerm(recipe, searchTerm) {
+  const compositeText = simplifyText(`${recipe.name} ${recipe.category} ${recipe.ingredients.join(" ")}`);
+  return !searchTerm || compositeText.includes(searchTerm);
+}
+
+function sortRecipesAlphabetically(recipeList) {
+  return [...recipeList].sort((firstRecipe, secondRecipe) =>
+    firstRecipe.name.localeCompare(secondRecipe.name, "pt-BR", { sensitivity: "base" })
+  );
+}
+
+function renderActiveStatFilter() {
+  for (const card of elements.statCards) {
+    const isActive = card.dataset.statFilter === activeStatFilter;
+    card.classList.toggle("active-filter", isActive);
+    card.setAttribute("aria-pressed", String(isActive));
+  }
+}
+
+function recipeMatchesStatFilter(recipe) {
+  if (activeStatFilter === "all") {
+    return true;
+  }
+
+  if (activeStatFilter === "favorites") {
+    return recipe.favorite;
+  }
+
+  if (activeStatFilter === "recent") {
+    return isRecentRecipe(recipe);
+  }
+
+  return mapCategory(recipe.category) === activeStatFilter;
 }
 
 function renderRecipeCard(recipe) {
@@ -437,7 +552,6 @@ function renderRecipeCard(recipe) {
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
             <span class="tag">${recipe.time} min</span>
-            <span class="tag">${recipe.servings} porções</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}
           </div>
         </div>
@@ -470,17 +584,18 @@ function renderRecipeCard(recipe) {
 }
 
 function countRecentRecipes() {
+  return recipes.filter((recipe) => isRecentRecipe(recipe)).length;
+}
+
+function isRecentRecipe(recipe) {
   const now = Date.now();
   const windowInMs = RECENT_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+  const dateValue = Date.parse(recipe.updatedAt || recipe.createdAt);
+  if (Number.isNaN(dateValue)) {
+    return false;
+  }
 
-  return recipes.filter((recipe) => {
-    const dateValue = Date.parse(recipe.updatedAt || recipe.createdAt);
-    if (Number.isNaN(dateValue)) {
-      return false;
-    }
-
-    return now - dateValue <= windowInMs;
-  }).length;
+  return now - dateValue <= windowInMs;
 }
 
 function mapCategory(category) {
@@ -568,7 +683,6 @@ function sanitizeRecipe(recipe) {
     name,
     category,
     time: Number(recipe.time) > 0 ? Number(recipe.time) : 0,
-    servings: Number(recipe.servings) > 0 ? Number(recipe.servings) : 1,
     ingredients,
     steps,
     favorite: Boolean(recipe.favorite),

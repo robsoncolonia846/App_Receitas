@@ -20,49 +20,48 @@
           <p class="hero-signature">Tamara Blatz</p>
         </div>
       </div>
-      <button id="jumpToForm" class="outline-btn" type="button">Cadastrar receitas</button>
     </header>
 
     <section class="panel stats-panel" aria-labelledby="stats-title">
       <h2 id="stats-title">Seu caderno de receitas</h2>
       <div class="stats-grid">
-        <article class="stat-card accent">
+        <button class="stat-card accent" data-stat-filter="all" type="button" aria-pressed="true">
           <strong id="statAll">0</strong>
           <span>Todas Receitas</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="cafe" type="button" aria-pressed="false">
           <strong id="statCafe">0</strong>
           <span>Cafés</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="favorites" type="button" aria-pressed="false">
           <strong id="statFavorites">0</strong>
           <span>Favoritas</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="lanches" type="button" aria-pressed="false">
           <strong id="statLanches">0</strong>
           <span>Lanches</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="recent" type="button" aria-pressed="false">
           <strong id="statRecent">0</strong>
           <span>Últimas atualizações</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="tortas" type="button" aria-pressed="false">
           <strong id="statTortas">0</strong>
           <span>Tortas</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="doces" type="button" aria-pressed="false">
           <strong id="statDoces">0</strong>
           <span>Doces</span>
-        </article>
-        <article class="stat-card">
+        </button>
+        <button class="stat-card" data-stat-filter="jantar" type="button" aria-pressed="false">
           <strong id="statJantar">0</strong>
           <span>Jantar</span>
-        </article>
+        </button>
       </div>
     </section>
 
     <section class="panel form-panel" id="cadastro" aria-labelledby="form-title">
-      <h3 id="form-title">Cadastro rápido</h3>
+      <h3 id="form-title">Cadastrar receitas</h3>
       <form id="recipeForm" class="quick-form">
         <label for="recipeName">Nome da receita</label>
         <input id="recipeName" name="name" type="text" placeholder="Ex.: Nhoque de batata" required>
@@ -70,16 +69,8 @@
         <label for="recipeCategory">Categoria</label>
         <input id="recipeCategory" name="category" type="text" placeholder="Ex.: Massas" required>
 
-        <div class="inline-fields">
-          <div>
-            <label for="recipeTime">Tempo (min)</label>
-            <input id="recipeTime" name="time" type="number" min="1" placeholder="45" required>
-          </div>
-          <div>
-            <label for="recipeServings">Porções</label>
-            <input id="recipeServings" name="servings" type="number" min="1" placeholder="4" required>
-          </div>
-        </div>
+        <label for="recipeTime">Tempo (min)</label>
+        <input id="recipeTime" name="time" type="number" min="1" placeholder="45" required>
 
         <label for="recipeIngredients">Ingredientes (um por linha)</label>
         <textarea id="recipeIngredients" name="ingredients" rows="4" placeholder="500g de batata&#10;1 ovo&#10;2 xícaras de farinha" required></textarea>
