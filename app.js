@@ -646,44 +646,46 @@ function renderRecipeCard(recipe) {
 
   return `
     <article class="recipe-card">
-      <div class="recipe-top">
-        <div>
+      <div class="recipe-layout">
+        <div class="recipe-main">
           <h4 class="recipe-title">${escapeHtml(recipe.name)}</h4>
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
             <span class="tag">${recipe.time} min</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}
           </div>
-        </div>
-        <div class="recipe-actions">
-          <button class="action-btn ${recipe.favorite ? "active" : ""}" data-action="favorite" data-id="${recipe.id}" type="button">
-            ${recipe.favorite ? "★" : "☆"}
-          </button>
-          <button class="action-btn" data-action="edit" data-id="${recipe.id}" type="button">Editar</button>
-          <button class="action-btn danger" data-action="delete" data-id="${recipe.id}" type="button">Excluir</button>
-        </div>
-      </div>
+          <details>
+            <summary>Ver detalhes</summary>
+            <div class="recipe-content">
+              <div>
+                <h4>Ingredientes</h4>
+                <ul>${ingredientItems}</ul>
+              </div>
+              <div>
+                <h4>Modo de preparo</h4>
+                <p>${escapeHtml(recipe.steps)}</p>
+              </div>
+            </div>
+          </details>
 
-      <div class="recipe-photo-row">
-        <div class="recipe-photo-frame">${recipePhotoContent}</div>
-        <button class="action-btn" data-action="photo" data-id="${recipe.id}" type="button">${recipePhoto ? "Trocar foto" : "Adicionar foto"}</button>
-      </div>
+          <p class="recipe-updated">Atualizada em ${updatedLabel}</p>
+        </div>
 
-      <details>
-        <summary>Ver detalhes</summary>
-        <div class="recipe-content">
-          <div>
-            <h4>Ingredientes</h4>
-            <ul>${ingredientItems}</ul>
+        <aside class="recipe-side">
+          <div class="recipe-actions">
+            <button class="action-btn ${recipe.favorite ? "active" : ""}" data-action="favorite" data-id="${recipe.id}" type="button">
+              ${recipe.favorite ? "★" : "☆"}
+            </button>
+            <button class="action-btn" data-action="edit" data-id="${recipe.id}" type="button">Editar</button>
+            <button class="action-btn danger" data-action="delete" data-id="${recipe.id}" type="button">Excluir</button>
           </div>
-          <div>
-            <h4>Modo de preparo</h4>
-            <p>${escapeHtml(recipe.steps)}</p>
-          </div>
-        </div>
-      </details>
 
-      <p class="recipe-updated">Atualizada em ${updatedLabel}</p>
+          <div class="recipe-photo-row">
+            <div class="recipe-photo-frame">${recipePhotoContent}</div>
+            <button class="action-btn photo-btn" data-action="photo" data-id="${recipe.id}" type="button">${recipePhoto ? "Trocar foto" : "Adicionar foto"}</button>
+          </div>
+        </aside>
+      </div>
     </article>
   `;
 }
