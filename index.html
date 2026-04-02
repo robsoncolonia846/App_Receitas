@@ -1,0 +1,126 @@
+﻿<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receitas da Casa</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@600;700&family=Nunito+Sans:wght@400;600;700;800&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main class="app-shell">
+    <header class="hero-card">
+      <div class="hero-main">
+        <span class="hero-dot" aria-hidden="true"></span>
+        <div>
+          <p class="hero-label">CADERNO DIGITAL</p>
+          <h1>Receitas da Casa</h1>
+          <p class="hero-signature">Tamara Blatz</p>
+        </div>
+      </div>
+      <button id="jumpToForm" class="outline-btn" type="button">Cadastrar receitas</button>
+    </header>
+
+    <section class="panel stats-panel" aria-labelledby="stats-title">
+      <h2 id="stats-title">Seu caderno de receitas</h2>
+      <div class="stats-grid">
+        <article class="stat-card accent">
+          <strong id="statAll">0</strong>
+          <span>Todas Receitas</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statCafe">0</strong>
+          <span>Cafés</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statFavorites">0</strong>
+          <span>Favoritas</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statLanches">0</strong>
+          <span>Lanches</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statRecent">0</strong>
+          <span>Últimas atualizações</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statTortas">0</strong>
+          <span>Tortas</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statDoces">0</strong>
+          <span>Doces</span>
+        </article>
+        <article class="stat-card">
+          <strong id="statJantar">0</strong>
+          <span>Jantar</span>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel form-panel" id="cadastro" aria-labelledby="form-title">
+      <h3 id="form-title">Cadastro rápido</h3>
+      <form id="recipeForm" class="quick-form">
+        <label for="recipeName">Nome da receita</label>
+        <input id="recipeName" name="name" type="text" placeholder="Ex.: Nhoque de batata" required>
+
+        <label for="recipeCategory">Categoria</label>
+        <input id="recipeCategory" name="category" type="text" placeholder="Ex.: Massas" required>
+
+        <div class="inline-fields">
+          <div>
+            <label for="recipeTime">Tempo (min)</label>
+            <input id="recipeTime" name="time" type="number" min="1" placeholder="45" required>
+          </div>
+          <div>
+            <label for="recipeServings">Porções</label>
+            <input id="recipeServings" name="servings" type="number" min="1" placeholder="4" required>
+          </div>
+        </div>
+
+        <label for="recipeIngredients">Ingredientes (um por linha)</label>
+        <textarea id="recipeIngredients" name="ingredients" rows="4" placeholder="500g de batata&#10;1 ovo&#10;2 xícaras de farinha" required></textarea>
+
+        <label for="recipeSteps">Modo de preparo</label>
+        <textarea id="recipeSteps" name="steps" rows="5" placeholder="Misture os ingredientes e cozinhe em fogo médio." required></textarea>
+
+        <div class="form-actions">
+          <button id="submitRecipeBtn" class="primary-btn" type="submit">Salvar receita</button>
+          <button id="cancelEditBtn" class="outline-btn form-cancel-btn" type="button" hidden>Cancelar edição</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="panel list-panel" aria-labelledby="list-title">
+      <div class="list-header">
+        <h3 id="list-title">Receitas cadastradas</h3>
+        <p id="listCount">0 itens</p>
+      </div>
+
+      <div class="filters">
+        <input id="searchInput" type="search" placeholder="Buscar por nome, categoria ou ingrediente">
+        <select id="categoryFilter" aria-label="Filtrar por categoria">
+          <option value="">Todas as categorias</option>
+        </select>
+      </div>
+
+      <p id="emptyState" class="empty-state">Nenhuma receita cadastrada ainda.</p>
+      <div id="recipeList" class="recipe-list"></div>
+    </section>
+
+    <section class="panel share-panel" aria-label="Compartilhar receitas">
+      <div class="share-actions">
+        <button id="exportJsonBtn" class="outline-btn" type="button">Exportar JSON</button>
+        <button id="importJsonBtn" class="outline-btn" type="button">Importar JSON</button>
+        <input id="importJsonInput" type="file" accept="application/json,.json" hidden>
+      </div>
+      <p id="shareStatus" class="share-status" role="status" aria-live="polite"></p>
+    </section>
+  </main>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
