@@ -61,8 +61,11 @@
     </section>
 
     <section class="panel form-panel" id="cadastro" aria-labelledby="form-title">
-      <h3 id="form-title">Cadastrar receitas</h3>
-      <form id="recipeForm" class="quick-form">
+      <div class="form-header">
+        <h3 id="form-title">Cadastrar receitas</h3>
+        <button id="toggleFormBtn" class="outline-btn" type="button" aria-expanded="false" aria-controls="recipeForm">Cadastrar</button>
+      </div>
+      <form id="recipeForm" class="quick-form" hidden>
         <label for="recipeName">Nome da receita</label>
         <input id="recipeName" name="name" type="text" placeholder="Ex.: Nhoque de batata" required>
 
@@ -100,6 +103,7 @@
 
       <p id="emptyState" class="empty-state">Nenhuma receita cadastrada ainda.</p>
       <div id="recipeList" class="recipe-list"></div>
+      <input id="recipePhotoInput" type="file" accept="image/*" hidden>
     </section>
 
     <section class="panel share-panel" aria-label="Compartilhar receitas">

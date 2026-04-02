@@ -1,8 +1,12 @@
 ﻿const STORAGE_KEY = "receitas-da-casa.v1";
 const RECENT_WINDOW_DAYS = 7;
+const RECIPE_PHOTO_MAX_DIMENSION = 860;
+const RECIPE_PHOTO_QUALITY = 0.86;
 
 const elements = {
   form: document.querySelector("#recipeForm"),
+  recipePhotoInput: document.querySelector("#recipePhotoInput"),
+  toggleFormBtn: document.querySelector("#toggleFormBtn"),
   statsGrid: document.querySelector(".stats-grid"),
   statCards: Array.from(document.querySelectorAll(".stat-card[data-stat-filter]")),
   submitRecipeBtn: document.querySelector("#submitRecipeBtn"),
@@ -31,12 +35,15 @@ const elements = {
 let recipes = loadRecipes();
 let editingRecipeId = null;
 let activeStatFilter = "all";
+let pendingPhotoRecipeId = null;
 
 setup();
 render();
 
 function setup() {
   elements.form.addEventListener("submit", onCreateRecipe);
+  elements.recipePhotoInput.addEventListener("change", onRecipePhotoSelected);
+  elements.toggleFormBtn.addEventListener("click", toggleRecipeForm);
   elements.cancelEditBtn.addEventListener("click", cancelEditing);
   elements.statsGrid.addEventListener("click", onStatFilterClick);
   elements.exportJsonBtn.addEventListener("click", exportRecipesAsJson);
@@ -47,6 +54,8 @@ function setup() {
     activeStatFilter = "all";
     render();
   });
+
+  closeRecipeForm();
 
   elements.recipeList.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
@@ -69,10 +78,76 @@ function setup() {
       return;
     }
 
+    if (button.dataset.action === "photo") {
+      startRecipePhotoUpload(recipeId);
+      return;
+    }
+
     if (button.dataset.action === "edit") {
       startEditing(recipeId);
     }
   });
+}
+
+function startRecipePhotoUpload(recipeId) {
+  pendingPhotoRecipeId = recipeId;
+  elements.recipePhotoInput.click();
+}
+
+async function onRecipePhotoSelected(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  if (!pendingPhotoRecipeId) {
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    const photoDataUrl = await createOptimizedImageDataUrl(file);
+    let updatedRecipe = false;
+
+    recipes = recipes.map((recipe) => {
+      if (recipe.id !== pendingPhotoRecipeId) {
+        return recipe;
+      }
+
+      updatedRecipe = true;
+      return {
+        ...recipe,
+        photo: photoDataUrl,
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    if (!updatedRecipe) {
+      setShareStatus("Essa receita não foi encontrada para receber foto.", true);
+      return;
+    }
+
+    saveRecipes();
+    render();
+    setShareStatus("Foto da receita atualizada.");
+  } catch (error) {
+    console.error("Falha ao carregar foto da receita:", error);
+    setShareStatus("Não foi possível carregar essa imagem.", true);
+  } finally {
+    pendingPhotoRecipeId = null;
+    event.target.value = "";
+  }
+}
+
+function toggleRecipeForm() {
+  if (elements.form.hidden) {
+    openRecipeForm();
+    elements.form.elements.name.focus();
+    return;
+  }
+
+  cancelEditing({ keepStatus: true });
+  setShareStatus("Cadastro fechado.");
 }
 
 function onStatFilterClick(event) {
@@ -132,6 +207,7 @@ function onCreateRecipe(event) {
       id: createId(),
       ...recipePayload,
       favorite: false,
+      photo: "",
       createdAt: now,
       updatedAt: now
     };
@@ -143,6 +219,7 @@ function onCreateRecipe(event) {
 
   saveRecipes();
   elements.searchInput.value = "";
+  closeRecipeForm();
   render();
 }
 
@@ -191,6 +268,7 @@ function startEditing(recipeId) {
   }
 
   editingRecipeId = recipeId;
+  openRecipeForm();
 
   elements.form.elements.name.value = recipe.name;
   elements.form.elements.category.value = recipe.category;
@@ -207,16 +285,34 @@ function startEditing(recipeId) {
 }
 
 function cancelEditing(options = {}) {
-  const { keepStatus = false } = options;
+  const { keepStatus = false, keepFormOpen = false } = options;
 
   editingRecipeId = null;
   elements.form.reset();
   elements.submitRecipeBtn.textContent = "Salvar receita";
   elements.cancelEditBtn.hidden = true;
 
+  if (keepFormOpen) {
+    openRecipeForm();
+  } else {
+    closeRecipeForm();
+  }
+
   if (!keepStatus) {
     setShareStatus("Edição cancelada.");
   }
+}
+
+function openRecipeForm() {
+  elements.form.hidden = false;
+  elements.toggleFormBtn.textContent = "Fechar";
+  elements.toggleFormBtn.setAttribute("aria-expanded", "true");
+}
+
+function closeRecipeForm() {
+  elements.form.hidden = true;
+  elements.toggleFormBtn.textContent = "Cadastrar";
+  elements.toggleFormBtn.setAttribute("aria-expanded", "false");
 }
 
 async function exportRecipesAsJson() {
@@ -543,6 +639,10 @@ function recipeMatchesStatFilter(recipe) {
 function renderRecipeCard(recipe) {
   const ingredientItems = recipe.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
   const updatedLabel = formatDateTime(recipe.updatedAt || recipe.createdAt);
+  const recipePhoto = cleanText(recipe.photo);
+  const recipePhotoContent = recipePhoto
+    ? `<img class="recipe-photo-preview" src="${escapeHtml(recipePhoto)}" alt="Foto da receita ${escapeHtml(recipe.name)}">`
+    : '<div class="recipe-photo-placeholder">Sem foto</div>';
 
   return `
     <article class="recipe-card">
@@ -562,6 +662,11 @@ function renderRecipeCard(recipe) {
           <button class="action-btn" data-action="edit" data-id="${recipe.id}" type="button">Editar</button>
           <button class="action-btn danger" data-action="delete" data-id="${recipe.id}" type="button">Excluir</button>
         </div>
+      </div>
+
+      <div class="recipe-photo-row">
+        <div class="recipe-photo-frame">${recipePhotoContent}</div>
+        <button class="action-btn" data-action="photo" data-id="${recipe.id}" type="button">${recipePhoto ? "Trocar foto" : "Adicionar foto"}</button>
       </div>
 
       <details>
@@ -658,6 +763,54 @@ function loadRecipes() {
   }
 }
 
+async function createOptimizedImageDataUrl(file) {
+  const originalDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImageFromDataUrl(originalDataUrl);
+  const { width, height } = calculateDimensions(image.width, image.height, RECIPE_PHOTO_MAX_DIMENSION);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Canvas indisponível");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", RECIPE_PHOTO_QUALITY);
+}
+
+function calculateDimensions(originalWidth, originalHeight, maxDimension) {
+  if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
+    return { width: originalWidth, height: originalHeight };
+  }
+
+  const ratio = Math.min(maxDimension / originalWidth, maxDimension / originalHeight);
+  return {
+    width: Math.max(1, Math.round(originalWidth * ratio)),
+    height: Math.max(1, Math.round(originalHeight * ratio))
+  };
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Imagem inválida"));
+    image.src = dataUrl;
+  });
+}
+
 function saveRecipes() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
 }
@@ -670,6 +823,7 @@ function sanitizeRecipe(recipe) {
   const name = cleanText(recipe.name);
   const category = normalizeCategory(cleanText(recipe.category));
   const steps = cleanText(recipe.steps);
+  const photo = typeof recipe.photo === "string" && recipe.photo.startsWith("data:image/") ? recipe.photo : "";
   const ingredients = Array.isArray(recipe.ingredients)
     ? recipe.ingredients.map((item) => cleanText(item)).filter(Boolean)
     : [];
@@ -686,6 +840,7 @@ function sanitizeRecipe(recipe) {
     ingredients,
     steps,
     favorite: Boolean(recipe.favorite),
+    photo,
     createdAt: typeof recipe.createdAt === "string" ? recipe.createdAt : new Date().toISOString(),
     updatedAt: typeof recipe.updatedAt === "string" ? recipe.updatedAt : new Date().toISOString()
   };
@@ -759,3 +914,4 @@ function setShareStatus(message, isError = false) {
   elements.shareStatus.textContent = message;
   elements.shareStatus.classList.toggle("error", isError);
 }
+
