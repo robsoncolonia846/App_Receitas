@@ -682,7 +682,7 @@ function renderRecipeCard(recipe) {
 
           <div class="recipe-photo-row">
             <div class="recipe-photo-frame">${recipePhotoContent}</div>
-            <button class="action-btn photo-btn" data-action="photo" data-id="${recipe.id}" type="button">${recipePhoto ? "Trocar foto" : "Adicionar foto"}</button>
+            <button class="action-btn photo-btn" data-action="photo" data-id="${recipe.id}" type="button">${recipePhoto ? "Editar foto" : "Adicionar foto"}</button>
           </div>
         </aside>
       </div>

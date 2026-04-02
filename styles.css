@@ -427,10 +427,9 @@ select:focus {
 }
 
 .recipe-photo-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  justify-content: flex-end;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
 }
 
 .recipe-photo-frame {
@@ -480,15 +479,24 @@ select:focus {
 
 .action-btn.photo-btn {
   background: transparent;
-  border-color: #d7cec5;
-  color: #6c655f;
-  font-weight: 600;
-  font-size: 0.9rem;
-  padding: 0.45rem 0.78rem;
+  border-color: transparent;
+  box-shadow: none;
+  color: #857e78;
+  font-weight: 700;
+  font-size: 0.82rem;
+  padding: 0.2rem 0.35rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 .action-btn.photo-btn:hover {
-  background: #f3eee8;
+  background: transparent;
+  color: #66605a;
+  transform: none;
+}
+
+.action-btn.photo-btn:active {
+  transform: none;
 }
 
 details {
@@ -567,10 +575,13 @@ summary {
     justify-items: start;
   }
 
-  .recipe-actions,
-  .recipe-photo-row {
+  .recipe-actions {
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .recipe-photo-row {
+    justify-items: start;
   }
 }
 
