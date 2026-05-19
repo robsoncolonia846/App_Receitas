@@ -83,6 +83,18 @@ function setup() {
       return;
     }
 
+    if (button.dataset.action === "toggle-ingredient") {
+      const itemIndex = Number.parseInt(button.dataset.index || "", 10);
+      toggleIngredientCheck(recipeId, itemIndex);
+      return;
+    }
+
+    if (button.dataset.action === "toggle-step") {
+      const itemIndex = Number.parseInt(button.dataset.index || "", 10);
+      toggleStepCheck(recipeId, itemIndex);
+      return;
+    }
+
     if (button.dataset.action === "edit") {
       startEditing(recipeId);
     }
@@ -171,12 +183,16 @@ function onCreateRecipe(event) {
   const recipePayload = {
     name: cleanText(formData.get("name")),
     category: normalizeCategory(cleanText(formData.get("category"))),
-    time: Number(formData.get("time")),
     ingredients: splitLines(formData.get("ingredients")),
-    steps: cleanText(formData.get("steps"))
+    steps: splitLines(formData.get("steps"))
   };
 
-  if (!recipePayload.name || !recipePayload.category || !recipePayload.steps || recipePayload.ingredients.length === 0) {
+  if (
+    !recipePayload.name
+    || !recipePayload.category
+    || recipePayload.steps.length === 0
+    || recipePayload.ingredients.length === 0
+  ) {
     return;
   }
 
@@ -240,6 +256,60 @@ function toggleFavorite(recipeId) {
   render();
 }
 
+function toggleIngredientCheck(recipeId, itemIndex) {
+  if (!Number.isInteger(itemIndex) || itemIndex < 0) {
+    return;
+  }
+
+  recipes = recipes.map((recipe) => {
+    if (recipe.id !== recipeId) {
+      return recipe;
+    }
+
+    const source = Array.isArray(recipe.checkedIngredients) ? recipe.checkedIngredients : [];
+    const hasIndex = source.includes(itemIndex);
+    const nextChecked = hasIndex
+      ? source.filter((index) => index !== itemIndex)
+      : [...source, itemIndex].sort((a, b) => a - b);
+
+    return {
+      ...recipe,
+      checkedIngredients: nextChecked,
+      updatedAt: new Date().toISOString()
+    };
+  });
+
+  saveRecipes();
+  render();
+}
+
+function toggleStepCheck(recipeId, itemIndex) {
+  if (!Number.isInteger(itemIndex) || itemIndex < 0) {
+    return;
+  }
+
+  recipes = recipes.map((recipe) => {
+    if (recipe.id !== recipeId) {
+      return recipe;
+    }
+
+    const source = Array.isArray(recipe.checkedSteps) ? recipe.checkedSteps : [];
+    const hasIndex = source.includes(itemIndex);
+    const nextChecked = hasIndex
+      ? source.filter((index) => index !== itemIndex)
+      : [...source, itemIndex].sort((a, b) => a - b);
+
+    return {
+      ...recipe,
+      checkedSteps: nextChecked,
+      updatedAt: new Date().toISOString()
+    };
+  });
+
+  saveRecipes();
+  render();
+}
+
 function removeRecipe(recipeId) {
   const recipe = recipes.find((item) => item.id === recipeId);
   if (!recipe) {
@@ -272,9 +342,8 @@ function startEditing(recipeId) {
 
   elements.form.elements.name.value = recipe.name;
   elements.form.elements.category.value = recipe.category;
-  elements.form.elements.time.value = recipe.time;
   elements.form.elements.ingredients.value = recipe.ingredients.join("\n");
-  elements.form.elements.steps.value = recipe.steps;
+  elements.form.elements.steps.value = getRecipeSteps(recipe).join("\n");
 
   elements.submitRecipeBtn.textContent = "Atualizar receita";
   elements.cancelEditBtn.hidden = false;
@@ -602,7 +671,8 @@ function getFilteredRecipes() {
 }
 
 function recipeMatchesSearchTerm(recipe, searchTerm) {
-  const compositeText = simplifyText(`${recipe.name} ${recipe.category} ${recipe.ingredients.join(" ")}`);
+  const recipeSteps = getRecipeSteps(recipe).join(" ");
+  const compositeText = simplifyText(`${recipe.name} ${recipe.category} ${recipe.ingredients.join(" ")} ${recipeSteps}`);
   return !searchTerm || compositeText.includes(searchTerm);
 }
 
@@ -651,7 +721,6 @@ function renderRecipeCard(recipe) {
           <h4 class="recipe-title">${escapeHtml(recipe.name)}</h4>
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
-            <span class="tag">${recipe.time} min</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}
           </div>
           <details>
@@ -838,7 +907,6 @@ function sanitizeRecipe(recipe) {
     id: typeof recipe.id === "string" ? recipe.id : createId(),
     name,
     category,
-    time: Number(recipe.time) > 0 ? Number(recipe.time) : 0,
     ingredients,
     steps,
     favorite: Boolean(recipe.favorite),

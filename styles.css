@@ -462,7 +462,9 @@ select:focus {
   background: #f0e9e2;
   border: 1px solid #d5c8bc;
   color: #3f3933;
-  padding-inline: 0.74rem;
+  padding: 0.22rem 0.58rem;
+  font-size: 0.86rem;
+  font-weight: 700;
 }
 
 .action-btn.active {
@@ -552,8 +554,63 @@ summary {
 }
 
 @media (max-width: 720px) {
+  html {
+    font-size: 80%;
+  }
+
   .app-shell {
-    width: min(540px, 100% - 20px);
+    width: min(540px, 100% - 16px);
+    margin: 14px auto 29px;
+    gap: 13px;
+  }
+
+  .hero-card,
+  .panel {
+    padding: 14px;
+  }
+
+  .stats-grid {
+    margin-top: 10px;
+    gap: 8px;
+  }
+
+  .stat-card {
+    min-height: 69px;
+    padding: 10px 11px;
+  }
+
+  .quick-form {
+    margin-top: 8px;
+    gap: 6px;
+  }
+
+  .recipe-group {
+    padding: 10px;
+  }
+
+  .recipe-group-header {
+    margin-bottom: 6px;
+  }
+
+  .recipe-card {
+    padding: 11px;
+  }
+
+  .recipe-photo-frame {
+    width: 77px;
+    height: 77px;
+  }
+
+  .recipe-list {
+    gap: 10px;
+  }
+
+  .filters {
+    gap: 8px;
+  }
+
+  .empty-state {
+    padding: 11px;
   }
 
   .hero-card {
