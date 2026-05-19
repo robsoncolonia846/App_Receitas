@@ -536,6 +536,56 @@ summary {
   gap: 4px;
 }
 
+.check-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.check-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.check-toggle {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  border: 1px solid #d2c5b8;
+  background: #fffaf4;
+  color: #7a746d;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1;
+  padding: 0;
+  display: inline-grid;
+  place-items: center;
+  margin-top: 1px;
+}
+
+.check-toggle:hover {
+  background: #f7eee5;
+}
+
+.check-item span {
+  color: #47413b;
+}
+
+.check-item.is-checked span {
+  text-decoration: line-through;
+  color: #948b83;
+}
+
+.check-item.is-checked .check-toggle {
+  background: #dff2e8;
+  border-color: #87baa1;
+  color: #2a7f62;
+}
+
 .recipe-updated {
   margin: 0;
   margin-top: 10px;

@@ -212,6 +212,8 @@ function onCreateRecipe(event) {
       return {
         ...recipe,
         ...recipePayload,
+        checkedIngredients: [],
+        checkedSteps: [],
         updatedAt: now
       };
     });
@@ -222,6 +224,8 @@ function onCreateRecipe(event) {
     const recipe = {
       id: createId(),
       ...recipePayload,
+      checkedIngredients: [],
+      checkedSteps: [],
       favorite: false,
       photo: "",
       createdAt: now,
@@ -707,7 +711,43 @@ function recipeMatchesStatFilter(recipe) {
 }
 
 function renderRecipeCard(recipe) {
-  const ingredientItems = recipe.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const recipeSteps = getRecipeSteps(recipe);
+  const checkedIngredients = Array.isArray(recipe.checkedIngredients) ? recipe.checkedIngredients : [];
+  const checkedSteps = Array.isArray(recipe.checkedSteps) ? recipe.checkedSteps : [];
+  const ingredientItems = recipe.ingredients.map((item, index) => {
+    const isChecked = checkedIngredients.includes(index);
+    return `
+      <li class="check-item ${isChecked ? "is-checked" : ""}">
+        <button
+          class="check-toggle"
+          data-action="toggle-ingredient"
+          data-id="${recipe.id}"
+          data-index="${index}"
+          type="button"
+          aria-pressed="${isChecked ? "true" : "false"}"
+          aria-label="${isChecked ? "Desmarcar ingrediente" : "Marcar ingrediente"}"
+        >${isChecked ? "✓" : "○"}</button>
+        <span>${escapeHtml(item)}</span>
+      </li>
+    `;
+  }).join("");
+  const stepItems = recipeSteps.map((step, index) => {
+    const isChecked = checkedSteps.includes(index);
+    return `
+      <li class="check-item ${isChecked ? "is-checked" : ""}">
+        <button
+          class="check-toggle"
+          data-action="toggle-step"
+          data-id="${recipe.id}"
+          data-index="${index}"
+          type="button"
+          aria-pressed="${isChecked ? "true" : "false"}"
+          aria-label="${isChecked ? "Desmarcar etapa" : "Marcar etapa"}"
+        >${isChecked ? "✓" : "○"}</button>
+        <span>${escapeHtml(step)}</span>
+      </li>
+    `;
+  }).join("");
   const updatedLabel = formatDateTime(recipe.updatedAt || recipe.createdAt);
   const recipePhoto = cleanText(recipe.photo);
   const recipePhotoContent = recipePhoto
@@ -728,11 +768,11 @@ function renderRecipeCard(recipe) {
             <div class="recipe-content">
               <div>
                 <h4>Ingredientes</h4>
-                <ul>${ingredientItems}</ul>
+                <ul class="check-list">${ingredientItems}</ul>
               </div>
               <div>
                 <h4>Modo de preparo</h4>
-                <p>${escapeHtml(recipe.steps)}</p>
+                <ul class="check-list">${stepItems}</ul>
               </div>
             </div>
           </details>
@@ -886,6 +926,32 @@ function saveRecipes() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
 }
 
+function getRecipeSteps(recipe) {
+  if (Array.isArray(recipe?.steps)) {
+    return recipe.steps.map((item) => cleanText(item)).filter(Boolean);
+  }
+
+  return splitLines(recipe?.steps);
+}
+
+function normalizeCheckedIndexes(values, maxLength) {
+  if (!Array.isArray(values) || maxLength <= 0) {
+    return [];
+  }
+
+  const uniqueIndexes = new Set();
+
+  for (const value of values) {
+    const numeric = Number.parseInt(String(value), 10);
+    if (!Number.isInteger(numeric) || numeric < 0 || numeric >= maxLength) {
+      continue;
+    }
+    uniqueIndexes.add(numeric);
+  }
+
+  return Array.from(uniqueIndexes).sort((a, b) => a - b);
+}
+
 function sanitizeRecipe(recipe) {
   if (!recipe || typeof recipe !== "object") {
     return null;
@@ -893,15 +959,18 @@ function sanitizeRecipe(recipe) {
 
   const name = cleanText(recipe.name);
   const category = normalizeCategory(cleanText(recipe.category));
-  const steps = cleanText(recipe.steps);
+  const steps = getRecipeSteps(recipe);
   const photo = typeof recipe.photo === "string" && recipe.photo.startsWith("data:image/") ? recipe.photo : "";
   const ingredients = Array.isArray(recipe.ingredients)
     ? recipe.ingredients.map((item) => cleanText(item)).filter(Boolean)
     : [];
 
-  if (!name || !category || !steps || ingredients.length === 0) {
+  if (!name || !category || steps.length === 0 || ingredients.length === 0) {
     return null;
   }
+
+  const checkedIngredients = normalizeCheckedIndexes(recipe.checkedIngredients, ingredients.length);
+  const checkedSteps = normalizeCheckedIndexes(recipe.checkedSteps, steps.length);
 
   return {
     id: typeof recipe.id === "string" ? recipe.id : createId(),
@@ -909,6 +978,8 @@ function sanitizeRecipe(recipe) {
     category,
     ingredients,
     steps,
+    checkedIngredients,
+    checkedSteps,
     favorite: Boolean(recipe.favorite),
     photo,
     createdAt: typeof recipe.createdAt === "string" ? recipe.createdAt : new Date().toISOString(),
