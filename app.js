@@ -17,6 +17,7 @@ const elements = {
   importJsonInput: document.querySelector("#importJsonInput"),
   shareStatus: document.querySelector("#shareStatus"),
   cloudStatus: document.querySelector("#cloudStatus"),
+  cloudStatusBadge: document.querySelector("#cloudStatusBadge"),
   searchInput: document.querySelector("#searchInput"),
   categoryFilter: document.querySelector("#categoryFilter"),
   listCount: document.querySelector("#listCount"),
@@ -799,11 +800,11 @@ function loadRecipes() {
 
 async function initCloudSync() {
   if (!window.RecipeCloudStore?.isConfigured()) {
-    setCloudStatus("Modo local. Configure o Supabase para salvar na nuvem.");
+    setCloudStatus("Modo local. Ainda não está salvando na nuvem.", "local");
     return;
   }
 
-  setCloudStatus("Conectando na nuvem...");
+  setCloudStatus("Conectando na sua nuvem...", "syncing");
 
   try {
     const cloudRecipes = normalizeRecipeList(await window.RecipeCloudStore.loadRecipes());
@@ -812,19 +813,19 @@ async function initCloudSync() {
       recipes = cloudRecipes;
       saveRecipesLocal();
       render();
-      setCloudStatus("Nuvem conectada.");
+      setCloudStatus("Nuvem conectada. Salvamento automático ligado.", "online");
     } else if (recipes.length > 0) {
       await window.RecipeCloudStore.saveRecipes(recipes);
-      setCloudStatus("Nuvem conectada. Receitas locais enviadas.");
+      setCloudStatus("Nuvem conectada. Receitas locais enviadas.", "online");
     } else {
-      setCloudStatus("Nuvem conectada.");
+      setCloudStatus("Nuvem conectada. Salvamento automático ligado.", "online");
     }
 
     cloudReady = true;
     window.addEventListener("focus", refreshRecipesFromCloud);
   } catch (error) {
     console.error("Não foi possível conectar na nuvem:", error);
-    setCloudStatus("Nuvem indisponível. Salvando neste aparelho.", true);
+    setCloudStatus(getCloudErrorMessage(error, "Nuvem indisponível. Salvando neste aparelho."), "error");
   }
 }
 
@@ -842,10 +843,10 @@ async function refreshRecipesFromCloud() {
     recipes = cloudRecipes;
     saveRecipesLocal();
     render();
-    setCloudStatus("Receitas atualizadas da nuvem.");
+    setCloudStatus("Receitas atualizadas da nuvem.", "online");
   } catch (error) {
     console.error("Não foi possível atualizar da nuvem:", error);
-    setCloudStatus("Não foi possível atualizar da nuvem agora.", true);
+    setCloudStatus(getCloudErrorMessage(error, "Não foi possível atualizar da nuvem agora."), "error");
   }
 }
 
@@ -918,10 +919,10 @@ function queueCloudSave() {
 async function saveRecipesToCloud() {
   try {
     await window.RecipeCloudStore.saveRecipes(recipes);
-    setCloudStatus("Salvo na nuvem.");
+    setCloudStatus("Salvo na sua nuvem.", "online");
   } catch (error) {
     console.error("Não foi possível salvar na nuvem:", error);
-    setCloudStatus("Não foi possível salvar na nuvem. Ficou salvo neste aparelho.", true);
+    setCloudStatus(getCloudErrorMessage(error, "Não foi possível salvar na nuvem. Ficou salvo neste aparelho."), "error");
   }
 }
 
@@ -1055,12 +1056,36 @@ function setShareStatus(message, isError = false) {
   elements.shareStatus.classList.toggle("error", isError);
 }
 
-function setCloudStatus(message, isError = false) {
-  if (!elements.cloudStatus) {
-    return;
+function setCloudStatus(message, state = "online") {
+  const isError = state === "error";
+
+  if (elements.cloudStatus) {
+    elements.cloudStatus.textContent = message;
+    elements.cloudStatus.classList.toggle("error", isError);
   }
 
-  elements.cloudStatus.textContent = message;
-  elements.cloudStatus.classList.toggle("error", isError);
+  if (elements.cloudStatusBadge) {
+    elements.cloudStatusBadge.querySelector("span:last-child").textContent = message;
+    elements.cloudStatusBadge.classList.remove("cloud-badge-online", "cloud-badge-local", "cloud-badge-syncing", "cloud-badge-error");
+    elements.cloudStatusBadge.classList.add(`cloud-badge-${state}`);
+  }
+}
+
+function getCloudErrorMessage(error, fallbackMessage) {
+  const message = simplifyText(error?.message || error?.hint || "");
+
+  if (message.includes("invalid api key")) {
+    return "Chave do Supabase inválida. Confira o cloud-config.js.";
+  }
+
+  if (message.includes("relation") && message.includes("does not exist")) {
+    return "Tabela da nuvem não encontrada. Rode o SQL do Supabase.";
+  }
+
+  if (message.includes("permission") || message.includes("row level security")) {
+    return "Permissão da nuvem bloqueada. Confira as policies no Supabase.";
+  }
+
+  return fallbackMessage;
 }
 
