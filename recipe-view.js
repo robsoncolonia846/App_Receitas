@@ -112,37 +112,31 @@ function renderRecipeDetails(recipe) {
 
   return `
     <article class="recipe-card single-card">
-      <div class="recipe-layout">
-        <div class="recipe-main">
-          <div class="single-title-row">
-            <h3 class="recipe-title">${escapeHtml(recipe.name)}</h3>
-            <a class="action-btn single-edit-btn" href="${editHref}">Editar</a>
-          </div>
+      <div class="single-photo-frame">${recipePhotoContent}</div>
+
+      <div class="single-title-row">
+        <div>
+          <h3 class="recipe-title">${escapeHtml(recipe.name)}</h3>
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}
           </div>
-
-          <div class="recipe-content single-recipe-content">
-            <div>
-              <h4>Ingredientes</h4>
-              <ul class="check-list">${ingredientItems}</ul>
-            </div>
-            <div>
-              <h4>Modo de preparo</h4>
-              <ul class="check-list">${stepItems}</ul>
-            </div>
-          </div>
-
-          <p class="recipe-updated">Atualizada em ${updatedLabel}</p>
         </div>
-
-        <aside class="recipe-side">
-          <div class="recipe-photo-row">
-            <div class="recipe-photo-frame">${recipePhotoContent}</div>
-          </div>
-        </aside>
+        <a class="action-btn single-edit-btn" href="${editHref}">Editar</a>
       </div>
+
+      <div class="recipe-content single-recipe-content">
+        <div>
+          <h4>Ingredientes</h4>
+          <ul class="check-list">${ingredientItems}</ul>
+        </div>
+        <div>
+          <h4>Modo de preparo</h4>
+          <ul class="check-list">${stepItems}</ul>
+        </div>
+      </div>
+
+      <p class="recipe-updated">Atualizada em ${updatedLabel}</p>
     </article>
   `;
 }
