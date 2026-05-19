@@ -1065,7 +1065,9 @@ function setCloudStatus(message, state = "online") {
   }
 
   if (elements.cloudStatusBadge) {
-    elements.cloudStatusBadge.querySelector("span:last-child").textContent = message;
+    elements.cloudStatusBadge.title = message;
+    elements.cloudStatusBadge.setAttribute("aria-label", message);
+    elements.cloudStatusBadge.querySelector(".cloud-badge-text").textContent = state === "online" ? "" : message;
     elements.cloudStatusBadge.classList.remove("cloud-badge-online", "cloud-badge-local", "cloud-badge-syncing", "cloud-badge-error");
     elements.cloudStatusBadge.classList.add(`cloud-badge-${state}`);
   }

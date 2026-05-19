@@ -73,8 +73,10 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  min-width: 34px;
+  min-height: 34px;
   max-width: 245px;
-  padding: 0.42rem 0.7rem;
+  padding: 0.42rem;
   border: 1px solid var(--stroke);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.72);
@@ -85,11 +87,38 @@ body {
 }
 
 .cloud-badge-dot {
+  position: relative;
+  width: 18px;
+  height: 10px;
+  border-radius: 999px;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.cloud-badge-dot::before,
+.cloud-badge-dot::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.cloud-badge-dot::before {
   width: 10px;
   height: 10px;
-  border-radius: 50%;
-  background: #9a9188;
-  flex-shrink: 0;
+  left: 3px;
+  top: -5px;
+}
+
+.cloud-badge-dot::after {
+  width: 8px;
+  height: 8px;
+  right: 2px;
+  top: -3px;
+}
+
+.cloud-badge-text:empty {
+  display: none;
 }
 
 .cloud-badge-online {
@@ -98,13 +127,11 @@ body {
 }
 
 .cloud-badge-online .cloud-badge-dot {
-  background: #2a7f62;
-  box-shadow: 0 0 0 5px rgba(42, 127, 98, 0.12);
+  color: #2a7f62;
 }
 
 .cloud-badge-syncing .cloud-badge-dot {
-  background: var(--accent);
-  box-shadow: 0 0 0 5px rgba(236, 153, 111, 0.16);
+  color: var(--accent);
 }
 
 .cloud-badge-error {
@@ -113,8 +140,7 @@ body {
 }
 
 .cloud-badge-error .cloud-badge-dot {
-  background: #8b3d38;
-  box-shadow: 0 0 0 5px rgba(139, 61, 56, 0.12);
+  color: #8b3d38;
 }
 
 .hero-main {
@@ -781,14 +807,14 @@ summary {
 
   .hero-main {
     align-items: flex-start;
-    padding-right: 132px;
+    padding-right: 48px;
   }
 
   .cloud-badge {
     top: 10px;
     right: 10px;
-    max-width: 124px;
-    padding: 0.36rem 0.55rem;
+    max-width: 156px;
+    padding: 0.36rem;
     gap: 6px;
     font-size: 0.68rem;
   }
