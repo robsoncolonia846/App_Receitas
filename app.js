@@ -1,8 +1,8 @@
 ﻿const STORAGE_KEY = "receitas-da-casa.v1";
 const CLOUD_SAVE_DELAY_MS = 700;
 const RECENT_WINDOW_DAYS = 7;
-const RECIPE_PHOTO_MAX_DIMENSION = 860;
-const RECIPE_PHOTO_QUALITY = 0.86;
+const RECIPE_PHOTO_MAX_DIMENSION = 720;
+const RECIPE_PHOTO_QUALITY = 0.78;
 
 const elements = {
   form: document.querySelector("#recipeForm"),
@@ -80,18 +80,9 @@ function setup() {
       return;
     }
 
-    if (button.dataset.action === "delete") {
-      removeRecipe(recipeId);
-      return;
-    }
-
     if (button.dataset.action === "photo") {
       startRecipePhotoUpload(recipeId);
       return;
-    }
-
-    if (button.dataset.action === "edit") {
-      startEditing(recipeId);
     }
   });
 }
@@ -723,8 +714,6 @@ function renderRecipeCard(recipe) {
             <button class="action-btn ${recipe.favorite ? "active" : ""}" data-action="favorite" data-id="${recipe.id}" type="button">
               ${recipe.favorite ? "★" : "☆"}
             </button>
-            <button class="action-btn" data-action="edit" data-id="${recipe.id}" type="button">Editar</button>
-            <button class="action-btn danger" data-action="delete" data-id="${recipe.id}" type="button">Excluir</button>
           </div>
 
           <div class="recipe-photo-row">

@@ -1,9 +1,12 @@
 const STORAGE_KEY = "receitas-da-casa.v1";
 const CLOUD_SAVE_DELAY_MS = 700;
+const RECIPE_PHOTO_MAX_DIMENSION = 720;
+const RECIPE_PHOTO_QUALITY = 0.78;
 
 const elements = {
   title: document.querySelector("#singleRecipeTitle"),
-  content: document.querySelector("#singleRecipeContent")
+  content: document.querySelector("#singleRecipeContent"),
+  photoInput: document.querySelector("#singleRecipePhotoInput")
 };
 
 const params = new URLSearchParams(window.location.search);
@@ -18,6 +21,8 @@ render();
 initCloudSync();
 
 function setup() {
+  elements.photoInput.addEventListener("change", onRecipePhotoSelected);
+
   elements.content.addEventListener("click", (event) => {
     const button = event.target.closest("button[data-action]");
     if (!button) {
@@ -38,6 +43,11 @@ function setup() {
     if (button.dataset.action === "toggle-step") {
       const itemIndex = Number.parseInt(button.dataset.index || "", 10);
       toggleStepCheck(buttonRecipeId, itemIndex);
+      return;
+    }
+
+    if (button.dataset.action === "photo") {
+      elements.photoInput.click();
     }
   });
 }
@@ -106,13 +116,17 @@ function renderRecipeDetails(recipe) {
   const recipePhotoContent = recipePhoto
     ? `<img class="recipe-photo-preview" src="${escapeHtml(recipePhoto)}" alt="Foto da receita ${escapeHtml(recipe.name)}">`
     : '<div class="recipe-photo-placeholder">Sem foto</div>';
+  const photoButtonLabel = recipePhoto ? "Trocar foto" : "Adicionar foto";
 
   const updatedLabel = formatDateTime(recipe.updatedAt || recipe.createdAt);
   const editHref = `index.html?edit=${encodeURIComponent(recipe.id)}`;
 
   return `
     <article class="recipe-card single-card">
-      <div class="single-photo-frame">${recipePhotoContent}</div>
+      <div class="single-photo-frame">
+        ${recipePhotoContent}
+        <button class="action-btn single-photo-btn" data-action="photo" data-id="${recipe.id}" type="button">${photoButtonLabel}</button>
+      </div>
 
       <div class="single-title-row">
         <div>
@@ -139,6 +153,37 @@ function renderRecipeDetails(recipe) {
       <p class="recipe-updated">Atualizada em ${updatedLabel}</p>
     </article>
   `;
+}
+
+async function onRecipePhotoSelected(event) {
+  const file = event.target.files?.[0];
+  if (!file) {
+    return;
+  }
+
+  try {
+    const photoDataUrl = await createOptimizedImageDataUrl(file);
+
+    recipes = recipes.map((recipe) => {
+      if (recipe.id !== recipeId) {
+        return recipe;
+      }
+
+      return {
+        ...recipe,
+        photo: photoDataUrl,
+        updatedAt: new Date().toISOString()
+      };
+    });
+
+    saveRecipes();
+    render();
+  } catch (error) {
+    console.error("Falha ao carregar foto da receita:", error);
+    window.alert("Não foi possível carregar essa imagem.");
+  } finally {
+    event.target.value = "";
+  }
 }
 
 function toggleIngredientCheck(targetRecipeId, itemIndex) {
@@ -221,6 +266,54 @@ function saveRecipes() {
 
 function saveRecipesLocal() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+}
+
+async function createOptimizedImageDataUrl(file) {
+  const originalDataUrl = await readFileAsDataUrl(file);
+  const image = await loadImageFromDataUrl(originalDataUrl);
+  const { width, height } = calculateDimensions(image.width, image.height, RECIPE_PHOTO_MAX_DIMENSION);
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Canvas indisponível");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+  return canvas.toDataURL("image/jpeg", RECIPE_PHOTO_QUALITY);
+}
+
+function calculateDimensions(originalWidth, originalHeight, maxDimension) {
+  if (originalWidth <= maxDimension && originalHeight <= maxDimension) {
+    return { width: originalWidth, height: originalHeight };
+  }
+
+  const ratio = Math.min(maxDimension / originalWidth, maxDimension / originalHeight);
+  return {
+    width: Math.max(1, Math.round(originalWidth * ratio)),
+    height: Math.max(1, Math.round(originalHeight * ratio))
+  };
+}
+
+function readFileAsDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(new Error("Falha ao ler arquivo"));
+    reader.readAsDataURL(file);
+  });
+}
+
+function loadImageFromDataUrl(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = () => reject(new Error("Imagem inválida"));
+    image.src = dataUrl;
+  });
 }
 
 async function initCloudSync() {
