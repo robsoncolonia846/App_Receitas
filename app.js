@@ -758,7 +758,14 @@ function renderRecipeCard(recipe) {
     <article class="recipe-card">
       <div class="recipe-layout">
         <div class="recipe-main">
-          <h4 class="recipe-title">${escapeHtml(recipe.name)}</h4>
+          <h4 class="recipe-title">
+            <a
+              class="recipe-title-link"
+              href="recipe.html?id=${encodeURIComponent(recipe.id)}"
+              target="_blank"
+              rel="noopener noreferrer"
+            >${escapeHtml(recipe.name)}</a>
+          </h4>
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}
