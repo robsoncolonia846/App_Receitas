@@ -108,12 +108,16 @@ function renderRecipeDetails(recipe) {
     : '<div class="recipe-photo-placeholder">Sem foto</div>';
 
   const updatedLabel = formatDateTime(recipe.updatedAt || recipe.createdAt);
+  const editHref = `index.html?edit=${encodeURIComponent(recipe.id)}`;
 
   return `
     <article class="recipe-card single-card">
       <div class="recipe-layout">
         <div class="recipe-main">
-          <h3 class="recipe-title">${escapeHtml(recipe.name)}</h3>
+          <div class="single-title-row">
+            <h3 class="recipe-title">${escapeHtml(recipe.name)}</h3>
+            <a class="action-btn single-edit-btn" href="${editHref}">Editar</a>
+          </div>
           <div class="recipe-meta">
             <span class="tag">${escapeHtml(recipe.category)}</span>
             ${recipe.favorite ? '<span class="tag favorite">Favorita</span>' : ""}

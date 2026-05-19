@@ -735,6 +735,21 @@ summary {
   margin-top: 12px;
 }
 
+.single-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.single-edit-btn {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid var(--stroke);
+  color: #5f5952;
+  text-decoration: none;
+  flex-shrink: 0;
+}
+
 @media (max-width: 720px) {
   html {
     font-size: 80%;
@@ -821,6 +836,15 @@ summary {
 }
 
 @media (max-width: 560px) {
+  .single-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .single-edit-btn {
+    width: max-content;
+  }
+
   .recipe-layout {
     grid-template-columns: 1fr;
   }

@@ -45,6 +45,7 @@ let cloudSaveTimer = 0;
 setup();
 render();
 initCloudSync();
+openRecipeFromUrl();
 
 function setup() {
   elements.form.addEventListener("submit", onCreateRecipe);
@@ -295,6 +296,30 @@ function startEditing(recipeId) {
 
   document.querySelector("#cadastro").scrollIntoView({ behavior: "smooth", block: "start" });
   elements.form.elements.name.focus();
+}
+
+function openRecipeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const editRecipeId = cleanText(params.get("edit"));
+  if (!editRecipeId) {
+    return;
+  }
+
+  const openEditor = () => {
+    startEditing(editRecipeId);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
+
+  if (recipes.some((recipe) => recipe.id === editRecipeId)) {
+    openEditor();
+    return;
+  }
+
+  window.setTimeout(() => {
+    if (recipes.some((recipe) => recipe.id === editRecipeId)) {
+      openEditor();
+    }
+  }, 900);
 }
 
 function cancelEditing(options = {}) {
