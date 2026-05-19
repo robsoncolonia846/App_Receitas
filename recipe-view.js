@@ -70,6 +70,7 @@ function renderRecipeDetails(recipe) {
     const isChecked = checkedIngredients.includes(index);
     return `
       <li class="check-item ${isChecked ? "is-checked" : ""}">
+        <span>${escapeHtml(item)}</span>
         <button
           class="check-toggle"
           data-action="toggle-ingredient"
@@ -79,7 +80,6 @@ function renderRecipeDetails(recipe) {
           aria-pressed="${isChecked ? "true" : "false"}"
           aria-label="${isChecked ? "Desmarcar ingrediente" : "Marcar ingrediente"}"
         >${isChecked ? "✓" : "○"}</button>
-        <span>${escapeHtml(item)}</span>
       </li>
     `;
   }).join("");
@@ -88,6 +88,7 @@ function renderRecipeDetails(recipe) {
     const isChecked = checkedSteps.includes(index);
     return `
       <li class="check-item ${isChecked ? "is-checked" : ""}">
+        <span>${escapeHtml(step)}</span>
         <button
           class="check-toggle"
           data-action="toggle-step"
@@ -97,7 +98,6 @@ function renderRecipeDetails(recipe) {
           aria-pressed="${isChecked ? "true" : "false"}"
           aria-label="${isChecked ? "Desmarcar etapa" : "Marcar etapa"}"
         >${isChecked ? "✓" : "○"}</button>
-        <span>${escapeHtml(step)}</span>
       </li>
     `;
   }).join("");
