@@ -1,4 +1,5 @@
 ﻿const STORAGE_KEY = "receitas-da-casa.v1";
+const CLOUD_SAVE_DELAY_MS = 700;
 const RECENT_WINDOW_DAYS = 7;
 const RECIPE_PHOTO_MAX_DIMENSION = 860;
 const RECIPE_PHOTO_QUALITY = 0.86;
@@ -15,6 +16,7 @@ const elements = {
   importJsonBtn: document.querySelector("#importJsonBtn"),
   importJsonInput: document.querySelector("#importJsonInput"),
   shareStatus: document.querySelector("#shareStatus"),
+  cloudStatus: document.querySelector("#cloudStatus"),
   searchInput: document.querySelector("#searchInput"),
   categoryFilter: document.querySelector("#categoryFilter"),
   listCount: document.querySelector("#listCount"),
@@ -36,9 +38,12 @@ let recipes = loadRecipes();
 let editingRecipeId = null;
 let activeStatFilter = "all";
 let pendingPhotoRecipeId = null;
+let cloudReady = false;
+let cloudSaveTimer = 0;
 
 setup();
 render();
+initCloudSync();
 
 function setup() {
   elements.form.addEventListener("submit", onCreateRecipe);
@@ -80,18 +85,6 @@ function setup() {
 
     if (button.dataset.action === "photo") {
       startRecipePhotoUpload(recipeId);
-      return;
-    }
-
-    if (button.dataset.action === "toggle-ingredient") {
-      const itemIndex = Number.parseInt(button.dataset.index || "", 10);
-      toggleIngredientCheck(recipeId, itemIndex);
-      return;
-    }
-
-    if (button.dataset.action === "toggle-step") {
-      const itemIndex = Number.parseInt(button.dataset.index || "", 10);
-      toggleStepCheck(recipeId, itemIndex);
       return;
     }
 
@@ -252,60 +245,6 @@ function toggleFavorite(recipeId) {
     return {
       ...recipe,
       favorite: !recipe.favorite,
-      updatedAt: new Date().toISOString()
-    };
-  });
-
-  saveRecipes();
-  render();
-}
-
-function toggleIngredientCheck(recipeId, itemIndex) {
-  if (!Number.isInteger(itemIndex) || itemIndex < 0) {
-    return;
-  }
-
-  recipes = recipes.map((recipe) => {
-    if (recipe.id !== recipeId) {
-      return recipe;
-    }
-
-    const source = Array.isArray(recipe.checkedIngredients) ? recipe.checkedIngredients : [];
-    const hasIndex = source.includes(itemIndex);
-    const nextChecked = hasIndex
-      ? source.filter((index) => index !== itemIndex)
-      : [...source, itemIndex].sort((a, b) => a - b);
-
-    return {
-      ...recipe,
-      checkedIngredients: nextChecked,
-      updatedAt: new Date().toISOString()
-    };
-  });
-
-  saveRecipes();
-  render();
-}
-
-function toggleStepCheck(recipeId, itemIndex) {
-  if (!Number.isInteger(itemIndex) || itemIndex < 0) {
-    return;
-  }
-
-  recipes = recipes.map((recipe) => {
-    if (recipe.id !== recipeId) {
-      return recipe;
-    }
-
-    const source = Array.isArray(recipe.checkedSteps) ? recipe.checkedSteps : [];
-    const hasIndex = source.includes(itemIndex);
-    const nextChecked = hasIndex
-      ? source.filter((index) => index !== itemIndex)
-      : [...source, itemIndex].sort((a, b) => a - b);
-
-    return {
-      ...recipe,
-      checkedSteps: nextChecked,
       updatedAt: new Date().toISOString()
     };
   });
@@ -712,42 +651,8 @@ function recipeMatchesStatFilter(recipe) {
 
 function renderRecipeCard(recipe) {
   const recipeSteps = getRecipeSteps(recipe);
-  const checkedIngredients = Array.isArray(recipe.checkedIngredients) ? recipe.checkedIngredients : [];
-  const checkedSteps = Array.isArray(recipe.checkedSteps) ? recipe.checkedSteps : [];
-  const ingredientItems = recipe.ingredients.map((item, index) => {
-    const isChecked = checkedIngredients.includes(index);
-    return `
-      <li class="check-item ${isChecked ? "is-checked" : ""}">
-        <button
-          class="check-toggle"
-          data-action="toggle-ingredient"
-          data-id="${recipe.id}"
-          data-index="${index}"
-          type="button"
-          aria-pressed="${isChecked ? "true" : "false"}"
-          aria-label="${isChecked ? "Desmarcar ingrediente" : "Marcar ingrediente"}"
-        >${isChecked ? "✓" : "○"}</button>
-        <span>${escapeHtml(item)}</span>
-      </li>
-    `;
-  }).join("");
-  const stepItems = recipeSteps.map((step, index) => {
-    const isChecked = checkedSteps.includes(index);
-    return `
-      <li class="check-item ${isChecked ? "is-checked" : ""}">
-        <button
-          class="check-toggle"
-          data-action="toggle-step"
-          data-id="${recipe.id}"
-          data-index="${index}"
-          type="button"
-          aria-pressed="${isChecked ? "true" : "false"}"
-          aria-label="${isChecked ? "Desmarcar etapa" : "Marcar etapa"}"
-        >${isChecked ? "✓" : "○"}</button>
-        <span>${escapeHtml(step)}</span>
-      </li>
-    `;
-  }).join("");
+  const ingredientItems = recipe.ingredients.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
+  const stepItems = recipeSteps.map((step) => `<li>${escapeHtml(step)}</li>`).join("");
   const updatedLabel = formatDateTime(recipe.updatedAt || recipe.createdAt);
   const recipePhoto = cleanText(recipe.photo);
   const recipePhotoContent = recipePhoto
@@ -775,11 +680,11 @@ function renderRecipeCard(recipe) {
             <div class="recipe-content">
               <div>
                 <h4>Ingredientes</h4>
-                <ul class="check-list">${ingredientItems}</ul>
+                <ul>${ingredientItems}</ul>
               </div>
               <div>
                 <h4>Modo de preparo</h4>
-                <ul class="check-list">${stepItems}</ul>
+                <ul>${stepItems}</ul>
               </div>
             </div>
           </details>
@@ -859,6 +764,17 @@ function extractRecipesFromJson(parsed) {
   return [];
 }
 
+function normalizeRecipeList(recipeList) {
+  if (!Array.isArray(recipeList)) {
+    return [];
+  }
+
+  return recipeList
+    .map((recipe) => sanitizeRecipe(recipe))
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(b.updatedAt || b.createdAt) - Date.parse(a.updatedAt || a.createdAt));
+}
+
 function loadRecipes() {
   try {
     const serialized = window.localStorage.getItem(STORAGE_KEY);
@@ -878,6 +794,58 @@ function loadRecipes() {
   } catch (error) {
     console.error("Não foi possível carregar as receitas:", error);
     return [];
+  }
+}
+
+async function initCloudSync() {
+  if (!window.RecipeCloudStore?.isConfigured()) {
+    setCloudStatus("Modo local. Configure o Supabase para salvar na nuvem.");
+    return;
+  }
+
+  setCloudStatus("Conectando na nuvem...");
+
+  try {
+    const cloudRecipes = normalizeRecipeList(await window.RecipeCloudStore.loadRecipes());
+
+    if (cloudRecipes.length > 0) {
+      recipes = cloudRecipes;
+      saveRecipesLocal();
+      render();
+      setCloudStatus("Nuvem conectada.");
+    } else if (recipes.length > 0) {
+      await window.RecipeCloudStore.saveRecipes(recipes);
+      setCloudStatus("Nuvem conectada. Receitas locais enviadas.");
+    } else {
+      setCloudStatus("Nuvem conectada.");
+    }
+
+    cloudReady = true;
+    window.addEventListener("focus", refreshRecipesFromCloud);
+  } catch (error) {
+    console.error("Não foi possível conectar na nuvem:", error);
+    setCloudStatus("Nuvem indisponível. Salvando neste aparelho.", true);
+  }
+}
+
+async function refreshRecipesFromCloud() {
+  if (!cloudReady || !window.RecipeCloudStore?.isConfigured()) {
+    return;
+  }
+
+  try {
+    const cloudRecipes = normalizeRecipeList(await window.RecipeCloudStore.loadRecipes());
+    if (JSON.stringify(cloudRecipes) === JSON.stringify(recipes)) {
+      return;
+    }
+
+    recipes = cloudRecipes;
+    saveRecipesLocal();
+    render();
+    setCloudStatus("Receitas atualizadas da nuvem.");
+  } catch (error) {
+    console.error("Não foi possível atualizar da nuvem:", error);
+    setCloudStatus("Não foi possível atualizar da nuvem agora.", true);
   }
 }
 
@@ -930,7 +898,31 @@ function loadImageFromDataUrl(dataUrl) {
 }
 
 function saveRecipes() {
+  saveRecipesLocal();
+  queueCloudSave();
+}
+
+function saveRecipesLocal() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+}
+
+function queueCloudSave() {
+  if (!cloudReady || !window.RecipeCloudStore?.isConfigured()) {
+    return;
+  }
+
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(saveRecipesToCloud, CLOUD_SAVE_DELAY_MS);
+}
+
+async function saveRecipesToCloud() {
+  try {
+    await window.RecipeCloudStore.saveRecipes(recipes);
+    setCloudStatus("Salvo na nuvem.");
+  } catch (error) {
+    console.error("Não foi possível salvar na nuvem:", error);
+    setCloudStatus("Não foi possível salvar na nuvem. Ficou salvo neste aparelho.", true);
+  }
 }
 
 function getRecipeSteps(recipe) {
@@ -1061,5 +1053,14 @@ function escapeHtml(value) {
 function setShareStatus(message, isError = false) {
   elements.shareStatus.textContent = message;
   elements.shareStatus.classList.toggle("error", isError);
+}
+
+function setCloudStatus(message, isError = false) {
+  if (!elements.cloudStatus) {
+    return;
+  }
+
+  elements.cloudStatus.textContent = message;
+  elements.cloudStatus.classList.toggle("error", isError);
 }
 

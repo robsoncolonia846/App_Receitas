@@ -1,4 +1,5 @@
 const STORAGE_KEY = "receitas-da-casa.v1";
+const CLOUD_SAVE_DELAY_MS = 700;
 
 const elements = {
   title: document.querySelector("#singleRecipeTitle"),
@@ -9,9 +10,12 @@ const params = new URLSearchParams(window.location.search);
 const recipeId = cleanText(params.get("id"));
 
 let recipes = loadRecipes();
+let cloudReady = false;
+let cloudSaveTimer = 0;
 
 setup();
 render();
+initCloudSync();
 
 function setup() {
   elements.content.addEventListener("click", (event) => {
@@ -205,9 +209,7 @@ function loadRecipes() {
       return [];
     }
 
-    return parsed
-      .map((recipe) => sanitizeRecipe(recipe))
-      .filter(Boolean);
+    return normalizeRecipeList(parsed);
   } catch (error) {
     console.error("Não foi possível carregar as receitas:", error);
     return [];
@@ -215,7 +217,81 @@ function loadRecipes() {
 }
 
 function saveRecipes() {
+  saveRecipesLocal();
+  queueCloudSave();
+}
+
+function saveRecipesLocal() {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+}
+
+async function initCloudSync() {
+  if (!window.RecipeCloudStore?.isConfigured()) {
+    return;
+  }
+
+  try {
+    const cloudRecipes = normalizeRecipeList(await window.RecipeCloudStore.loadRecipes());
+    if (cloudRecipes.length > 0) {
+      recipes = cloudRecipes;
+      saveRecipesLocal();
+      render();
+    } else if (recipes.length > 0) {
+      await window.RecipeCloudStore.saveRecipes(recipes);
+    }
+
+    cloudReady = true;
+    window.addEventListener("focus", refreshRecipesFromCloud);
+  } catch (error) {
+    console.error("Não foi possível conectar na nuvem:", error);
+  }
+}
+
+async function refreshRecipesFromCloud() {
+  if (!cloudReady || !window.RecipeCloudStore?.isConfigured()) {
+    return;
+  }
+
+  try {
+    const cloudRecipes = normalizeRecipeList(await window.RecipeCloudStore.loadRecipes());
+    if (JSON.stringify(cloudRecipes) === JSON.stringify(recipes)) {
+      return;
+    }
+
+    recipes = cloudRecipes;
+    saveRecipesLocal();
+    render();
+  } catch (error) {
+    console.error("Não foi possível atualizar da nuvem:", error);
+  }
+}
+
+function queueCloudSave() {
+  if (!cloudReady || !window.RecipeCloudStore?.isConfigured()) {
+    return;
+  }
+
+  window.clearTimeout(cloudSaveTimer);
+  cloudSaveTimer = window.setTimeout(saveRecipesToCloud, CLOUD_SAVE_DELAY_MS);
+}
+
+async function saveRecipesToCloud() {
+  try {
+    await window.RecipeCloudStore.saveRecipes(recipes);
+  } catch (error) {
+    console.error("Não foi possível salvar na nuvem:", error);
+  }
+}
+
+function normalizeRecipeList(recipeList) {
+  if (!Array.isArray(recipeList)) {
+    return [];
+  }
+
+  return recipeList
+    .map((recipe) => sanitizeRecipe(recipe))
+    .filter(Boolean)
+    .sort((a, b) => Date.parse(b.updatedAt || b.createdAt) - Date.parse(a.updatedAt || a.createdAt));
 }
 
 function sanitizeRecipe(recipe) {

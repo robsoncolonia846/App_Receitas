@@ -301,14 +301,20 @@ select:focus {
   gap: 8px;
 }
 
-.share-status {
+.share-status,
+.cloud-status {
   margin: 0;
   color: #615a54;
   font-size: 0.9rem;
   min-height: 1.2em;
 }
 
-.share-status.error {
+.cloud-status {
+  font-weight: 700;
+}
+
+.share-status.error,
+.cloud-status.error {
   color: #8b3d38;
 }
 
